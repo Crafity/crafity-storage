@@ -1,0 +1,18 @@
+{
+	"name": "crafity-storage",
+	"description": "Generic storage provider",
+	"version": "0.1.0",
+	"author": "Bart Riemens <briemens@crafity.com>",
+	"keywords": ["crafity", "storage", "database", "provider", "couchdb", "persistence"],
+	"repository": "git://github.com/crafity/crafity-modules",
+	"main": "./storage.js",
+	"engines": {
+		"node": "> 0.4.x < 0.7.0"
+	},
+	"scripts" : {
+		"prepublish" : "npm prune"
+	},
+	"dependencies": {
+		"couch-client": "0.0.4"
+	}
+}

@@ -1,0 +1,6 @@
+[submodule "node_modules/nano"]
+	path = node_modules/nano
+	url = https://github.com/dscape/nano.git
+[submodule "node_modules/couch-client"]
+	path = node_modules/couch-client
+	url = https://github.com/creationix/couch-client.git
