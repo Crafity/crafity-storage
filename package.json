@@ -1,18 +1,60 @@
 {
 	"name": "crafity-storage",
 	"description": "Generic storage provider",
-	"version": "0.1.0",
+	"version": "0.0.1",
 	"author": "Bart Riemens <briemens@crafity.com>",
-	"keywords": ["crafity", "storage", "database", "provider", "couchdb", "persistence"],
-	"repository": "git://github.com/crafity/crafity-modules",
-	"main": "./storage.js",
-	"engines": {
-		"node": "> 0.4.x < 0.7.0"
+	"homepage": "https://github.com/Crafity/crafity-storage/wiki",
+	"keywords": [ "crafity", "storage", "database", "provider", "couchdb", "persistence" ],
+	"maintainers": [
+		{
+			"name": "Bart Riemens",
+			"email": "briemens@crafity.com",
+			"web": "http://crafity.com/about/bart"
+		},
+		{
+			"name": "Galina Slavova",
+			"email": "galina@crafity.com",
+			"web": "http://crafity.com/about/galina"
+		}
+	],
+	"contributors": [
+		{
+			"name": "Bart Riemens",
+			"email": "briemens@crafity.com",
+			"web": "http://crafity.com/about/bart"
+		},
+		{
+			"name": "Galina Slavova",
+			"email": "galina@crafity.com",
+			"web": "http://crafity.com/about/galina"
+		}
+	],
+	"main": "main.js",
+	"directories": {
+		"test": "test"
 	},
-	"scripts" : {
-		"prepublish" : "npm prune"
-	},
+	"licenses": [
+		{
+			"type": "The MIT License",
+			"url": "https://github.com/Crafity/crafity-storage/blob/master/LICENSE"
+		}
+	],
+	"bugs": "https://github.com/Crafity/crafity-storage/issues",
+	"repositories": [
+		{
+			"type": "git",
+			"url": "https://github.com/Crafity/crafity-storage.git"
+		}
+	],
 	"dependencies": {
-		"couch-client": "0.0.4"
+		"couch-client": "0.0.4",
+		"nano": "3.0.9",
+		"mongoose": "2.7.1",
+		"crafity-core": "*",
+		"crafity-filesystem": "*",
+		"crafity-jstest": "*"
+	},
+	"engines": {
+		"node": "*"
 	}
 }
