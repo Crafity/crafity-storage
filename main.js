@@ -1,5 +1,4 @@
-/*jslint bitwise: true, unparam: true, maxerr: 50, white: true, nomen: true */
-/*globals couchClient, require, providers, module, exports, process */
+/*jslint node:true, bitwise: true, unparam: true, maxerr: 50, white: true, nomen: true */
 /*!
  * crafity-storage - Abstract Storage Provider
  * Copyright(c) 2011 Crafity
@@ -41,7 +40,7 @@ exports.connect = function (url, database, path) {
 	provider.repositories = {};
 	provider.couchClient = couchClient(url);
 	provider.nano = nano(url);
-	
+
 	provider.open = function (name) {
 		if (provider.repositories[name]) { return provider.repositories[name]; }
 		var filePath = fs.combine(process.cwd(), path, name + ".js");
@@ -88,7 +87,7 @@ exports.connect = function (url, database, path) {
 					function (err, result) {
 						if (err) {
 							callback(err);
-						} else { 
+						} else {
 							callback(null, result);
 						}
 					}
@@ -269,18 +268,21 @@ exports.connect = function (url, database, path) {
 	return provider;
 };
 
-exports.middleware = function (app) {
+exports.attach = function (app, config) {
 	"use strict";
-	app.storage = module.exports;
+	app.storage = exports;
 	app.databases = {};
-	if (app.config && app.config.webserver && app.config.webserver.storage) {
-		objects.forEach(app.config.webserver.storage, function (server, servername) {
-			if (server.url && server.path &&
-				server.databases && server.databases.length) {
-				server.databases.forEach(function (database) {
-					app.databases[database] = exports.connect(server.url + server.database, server.database, server.path).open(database);
-				});
-			}
-		});
-	}
+
+	config = config || app.config && app.config.webserver && app.config.webserver.storage || {};
+
+	objects.forEach(config, function (server, servername) {
+		if (server.url && server.path &&
+			server.repositories && server.repositories.length) {
+			server.repositories.forEach(function (repository) {
+				app.databases[repository] = exports
+					.connect(server.url + server.database, server.database, server.path)
+					.open(repository);
+			});
+		}
+	});
 };
