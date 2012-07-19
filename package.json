@@ -1,10 +1,10 @@
 {
 	"name": "crafity-storage",
 	"description": "Generic storage provider",
-	"version": "0.0.1",
-	"author": "Bart Riemens <briemens@crafity.com>",
+	"version": "0.0.2",
+	"author": "Galina Slavova <galina@crafity.com>",
 	"homepage": "https://github.com/Crafity/crafity-storage/wiki",
-	"keywords": [ "crafity", "storage", "database", "provider", "couchdb", "persistence" ],
+	"keywords": [ "crafity", "storage", "database", "provider", "couchdb", "MongoDB", "mongoose", "nano", "couch-client", "persistence" ],
 	"maintainers": [
 		{
 			"name": "Bart Riemens",
@@ -56,5 +56,9 @@
 	},
 	"engines": {
 		"node": "*"
+	},
+	"scripts": {
+		"prepublish": "npm prune",
+		"test": "./runtests"
 	}
 }
