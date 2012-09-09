@@ -14,4 +14,4 @@ module.exports.fullname = "crafity-storage";
  * Module version.
  */
 
-module.exports.version = '0.0.8';
+module.exports.version = '0.0.9';
