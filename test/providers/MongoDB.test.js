@@ -41,6 +41,32 @@ var jstest = require('crafity-jstest')
 				assert.areEqual(config.name, mongoDB.name, "Expected another name");
 			},
 
+			"MongoDB---> When calling REMOVE on an existing record Then the record must be removed": function (context) {
+				context.async(3000);
+
+				var mongoDB = new MongoDB(config)
+					, unsavedDocument = { name: "TEST" };
+
+				mongoDB.save(unsavedDocument, function (err, savedDocument) {
+					if (err) { throw err; }
+
+					mongoDB.remove({ _id: savedDocument._id }, function (err, resultAfterRemoving) {
+
+						console.log("resultAfterRemoving", resultAfterRemoving);
+						mongoDB.getById(savedDocument._id, function (err, removedRecord) {
+							context.complete(err, removedRecord);
+						});
+					});
+				});
+
+				context.onComplete(function (err, results) {
+					if (err) { throw err; }
+					var removedRecord = results[0];
+					assert.hasNoValue(removedRecord, "Expected the fetched object to have NO VALUE");
+
+				});
+			},
+
 			"MongoDB---> When calling getAll Then it must return all records": function (context) {
 				context.async(3000);
 
