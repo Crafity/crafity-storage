@@ -1,8 +1,7 @@
 /*jslint node:true*/
 
-var storage = require('./lib/crafity.storage');
-
-module.exports = storage;
+module.exports = require('./lib/crafity.storage');
+module.exports.Storage = module.exports;
 
 /**
  * Module name. 
