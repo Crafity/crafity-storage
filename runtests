@@ -4,5 +4,6 @@ require('./test/package.test');
 //require('./test/crafity.storage.test');
 //require('./test/providers/CouchDB.test');
 //require('./test/providers/MongoDB.test');
+require('./test/providers/FileSystem.test');
 //require('./test/candidates.test');
 //setTimeout(function () { process.exit(0); }, 1000);
