@@ -4,7 +4,7 @@ module.exports = require('./lib/crafity.storage');
 module.exports.Storage = module.exports;
 
 /**
- * Module name. 
+ * Module name.
  */
 
 module.exports.fullname = "crafity-storage";

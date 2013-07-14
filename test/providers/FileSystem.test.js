@@ -88,7 +88,7 @@ var jstest = require('crafity-jstest')
 
           assert.hasValue(document, "Expected the fetched document to be returned");
           assert.areEqual(savedDocument._id, document._id, "Expected the fetched document to have the same _id as the saved document");
-          
+
         });
       }
     };
