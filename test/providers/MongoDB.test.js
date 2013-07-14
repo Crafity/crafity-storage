@@ -1,24 +1,26 @@
-/*jslint node:true, white: true */
+/*jslint node: true, bitwise: true, unparam: true, maxerr: 50, white: true, stupid: true */
+"use strict";
+
 /*!
- * crafity.process.test - Filesystem tests
- * Copyright(c) 2011 Crafity
- * Copyright(c) 2012 Galina Slavova
- * Copyright(c) 2012 Bart Riemens
+ * crafity-storage - MongoDB Provider test
+ * Copyright(c) 2013 Crafity
+ * Copyright(c) 2013 Bart Riemens
+ * Copyright(c) 2013 Galina Slavova
  * MIT Licensed
  */
 
 /**
  * Test dependencies.
  */
+
 var jstest = require('crafity-jstest')
   , MongoDB = require('../../lib/providers/MongoDB.js')
   , assert = jstest.assert
-  , context = jstest.createContext()
+  , context = jstest.createContext("MongoDB provider tests")
   , db = require("./data/mongo.database")
   ;
 
 (function () {
-  "use strict";
 
   console.log("Testing 'MongoDB.js' in crafity-storage... ");
 
@@ -27,6 +29,14 @@ var jstest = require('crafity-jstest')
     "url": "mongodb://localhost/crafity-test",
     "collection": "tests"
   }, tests;
+
+  function initDb(config, callback) {
+    db.create(config, callback);
+  }
+
+  function destroyDb(config, callback) {
+    db.drop(config, callback);
+  }
 
   function runTests(err) {
     if (err) { throw err; }
@@ -118,7 +128,7 @@ var jstest = require('crafity-jstest')
           if (err) { throw err; }
 //				console.log("geoSearchResults", geoSearchResults);
           assert.hasNoValue(err, "Did not expect an error to be thrown!");
-          assert.hasValue(geoSearchResults, "Expected results from geoSearch to be returned.")
+          assert.hasValue(geoSearchResults, "Expected results from geoSearch to be returned.");
         });
       },
 
@@ -319,14 +329,6 @@ var jstest = require('crafity-jstest')
     });
     context.run(tests);
 
-  }
-
-  function initDb(config, callback) {
-    db.create(config, callback);
-  }
-
-  function destroyDb(config, callback) {
-    db.drop(config, callback);
   }
 
   initDb(config, runTests);

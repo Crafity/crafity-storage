@@ -1,7 +1,15 @@
-/*jslint node:true*/
+/*jslint node: true, bitwise: true, unparam: true, maxerr: 50, white: true, stupid: true */
+"use strict";
+
+/*!
+ * crafity-storage - Dummy Test Repository
+ * Copyright(c) 2013 Crafity
+ * Copyright(c) 2013 Bart Riemens
+ * Copyright(c) 2013 Galina Slavova
+ * MIT Licensed
+ */
 
 module.exports = function TestRepository(name, provider) {
-  "use strict";
 
   var self = this;
 
@@ -16,8 +24,9 @@ module.exports = function TestRepository(name, provider) {
       conn.db.collection(self.name, function (err, collection) {
         if (err) { return callback(err, undefined); }
 
-        if (!collection) { throw Error("No such collection " + self.name + "!"); }
-        else { return callback(null, collection); }
+        if (!collection) { throw new Error("No such collection " + self.name + "!"); }
+        
+        return callback(null, collection);
       });
 
     });
@@ -29,14 +38,12 @@ module.exports = function TestRepository(name, provider) {
     getCollection(function (err, collection) {
       if (err) { return callback(err); }
 
-      console.log("collection", collection);
       try {
-        collection.find().toArray(function (err, candidates) {
+        return collection.find().toArray(function (err, candidates) {
           callback(null, candidates);
         });
-      }
-      catch (err) {
-        return callback(err)
+      } catch (err2) {
+        return callback(err2);
       }
     });
 

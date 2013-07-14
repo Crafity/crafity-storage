@@ -1,25 +1,27 @@
-/*jslint node:true, white: true */
+/*jslint node: true, bitwise: true, unparam: true, maxerr: 50, white: true, stupid: true */
+"use strict";
+
 /*!
- * crafity.FileSystem.test - FileSystem tests
+ * crafity-storage - MongoDB Provider test
  * Copyright(c) 2013 Crafity
- * Copyright(c) 2013 Galina Slavova
  * Copyright(c) 2013 Bart Riemens
+ * Copyright(c) 2013 Galina Slavova
  * MIT Licensed
  */
 
 /**
  * Test dependencies.
  */
+
 var jstest = require('crafity-jstest')
   , core = require('crafity-core')
   , fs = require('crafity-filesystem')
   , FileSystem = require('../../lib/providers/FileSystem.js')
   , assert = jstest.assert
-  , context = jstest.createContext()
+  , context = jstest.createContext("Filesystem provider tests")
   ;
 
 (function () {
-  "use strict";
 
   console.log("Testing 'FileSystem.js' in crafity-storage... ");
 
@@ -38,8 +40,10 @@ var jstest = require('crafity-jstest')
     var tests = {
       "FileSystem---> When the FileSystem provider is instaniated without any configuration Then an error must be thrown": function (context) {
         try {
-          new FileSystem();
+          var fs = new FileSystem();
           assert.fail("Expected a configuration error");
+          fs.toString();
+          
         } catch (err) {
           assert.hasValue(err, "Expected a configuration error");
           assert.areEqual("Expected a FileSystem configuration", err.message, "Expected another configuration error message");
@@ -97,9 +101,10 @@ var jstest = require('crafity-jstest')
      * Run the tests
      */
     context.onComplete.subscribe(function () {
-      destroyDb(config, function (err) {
-        if (err) { throw err; }
-      });
+      // destroyDb(config, function (err) {
+      //   if (err) { throw err; }
+      // });
+      return false;
     });
     context.run(tests);
   }

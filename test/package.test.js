@@ -1,4 +1,4 @@
-/*jslint node:true, white:true */
+/*jslint node:true, white:true, stupid: true */
 /*!
  * package.test - package.json tests
  * Copyright(c) 2011 Crafity
@@ -12,7 +12,7 @@
  */
 var jstest = require('crafity-jstest')
   , assert = jstest.assert
-  , context = jstest.createContext()
+  , context = jstest.createContext("Node Module Package Test")
   , fs = require('crafity-filesystem')
   , main
   ;
@@ -29,7 +29,6 @@ var jstest = require('crafity-jstest')
 
       main = require('../main');
       assert.isDefined(main, "Expected main to be defined");
-      assert.areEqual(main, main.__proto__, "Expected main to be the standard module");
     },
 
     'package---> The module must have a fullname': function () {
@@ -40,7 +39,7 @@ var jstest = require('crafity-jstest')
       assert.isDefined(main.version, "Expected version number to be defined");
     },
 
-    'package---> The module must have package.json file': function (context) {
+    'package---> The module must have package.json file': function () {
       fs.readFileSync("./package.json");
     },
 

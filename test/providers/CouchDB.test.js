@@ -1,27 +1,27 @@
-/*jslint node:true, white: true */
+/*jslint node: true, bitwise: true, unparam: true, maxerr: 50, white: true, stupid: true */
+"use strict";
+
 /*!
- * crafity.process.test - Filesystem tests
- * Copyright(c) 2011 Crafity
- * Copyright(c) 2012 Galina Slavova
- * Copyright(c) 2012 Bart Riemens
+ * crafity-storage - CouchDB Provider test
+ * Copyright(c) 2013 Crafity
+ * Copyright(c) 2013 Bart Riemens
+ * Copyright(c) 2013 Galina Slavova
  * MIT Licensed
  */
 
 /**
  * Test dependencies.
  */
+
 var jstest = require('crafity-jstest')
   , core = require('crafity-core')
   , CouchDB = require('../../lib/providers/CouchDB.js')
   , createNano = require('nano')
   , assert = jstest.assert
-  , context = jstest.createContext()
+  , context = jstest.createContext("CouchDB provider test")
   ;
 
 (function () {
-  "use strict";
-
-  console.log("Testing 'CouchDB.js' in crafity-storage... ");
 
   var config = {
       "name": "MyCouch",
@@ -45,6 +45,21 @@ var jstest = require('crafity-jstest')
     , nano = createNano(config.url)
     ;
 
+  function initDb(config, callback) {
+    nano.db.destroy(config.database, function (err) {
+      nano.db.create(config.database, function (err) {
+        if (err) { throw err; }
+        CouchDB.use(config, function (couchDB) {
+          couchDB.save(view, callback);
+        });
+      });
+    });
+  }
+
+  function destroyDb(config, callback) {
+    nano.db.destroy(config.database, callback);
+  }
+
   function runTests(err) {
     if (err) { throw err; }
 
@@ -56,6 +71,7 @@ var jstest = require('crafity-jstest')
         try {
           var couchDB = new CouchDB();
           assert.fail("Expected a configuration error");
+          couchDB.toString();
         } catch (err) {
           assert.hasValue(err, "Expected a configuration error");
           assert.areEqual("Expected a CouchDB configuration", err.message, "Expected another configuration error message");
@@ -230,21 +246,6 @@ var jstest = require('crafity-jstest')
       });
     });
     context.run(tests);
-  }
-
-  function initDb(config, callback) {
-    nano.db.destroy(config.database, function (err) {
-      nano.db.create(config.database, function (err) {
-        if (err) { throw err; }
-        CouchDB.use(config, function (couchDB) {
-          couchDB.save(view, callback);
-        });
-      });
-    });
-  }
-
-  function destroyDb(config, callback) {
-    nano.db.destroy(config.database, callback);
   }
 
   initDb(config, runTests);

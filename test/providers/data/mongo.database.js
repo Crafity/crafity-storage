@@ -27,7 +27,7 @@ module.exports.create = function (config, callback) {
       , Model = mongooseInstance.model(config.collection, storageTest)
       , modelInstance = new Model();
 
-    modelInstance.save(function () {
+    return modelInstance.save(function () {
 
       Model.collection.remove();
 
@@ -77,9 +77,9 @@ module.exports.create = function (config, callback) {
         , function (err) {
           if (err) { return callback(err); }
           setTimeout(function () {
-            mongooseInstance.disconnect(function (err, res) {
+            mongooseInstance.disconnect(function (err /*, res */) {
               if (err) { return callback(err); }
-              callback();
+              return callback();
             });
           }, 100);
         });
