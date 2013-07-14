@@ -53,6 +53,8 @@ var jstest = require('crafity-jstest')
           , document = { name: "John Doe", age: "35" };
 
         fileSystem.save(document, function (err, document) {
+          if (err) { throw err; }
+          assert.hasValue(document, "Expected the saved document to be returned");
           fileSystem.remove(document, function (err) {
             context.complete(err, document);
           });
@@ -72,7 +74,11 @@ var jstest = require('crafity-jstest')
           , document = { name: "Jane Doe", age: "26" };
 
         fileSystem.save(document, function (err, savedDocument) {
+          if (err) { throw err; }
+          assert.hasValue(savedDocument, "Expected the saved document to be returned");
           fileSystem.getByKey(savedDocument._id, function (err, document) {
+            if (err) { throw err; }
+            assert.hasValue(document, "Expected the saved document to be returned");
             fileSystem.remove(document, function (err, document) {
               context.complete(err, savedDocument, document);
             });
