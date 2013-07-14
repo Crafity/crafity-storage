@@ -4,7 +4,7 @@
   "version": "0.0.10",
   "author": "Galina Slavova <galina@crafity.com>",
   "homepage": "https://github.com/Crafity/crafity-storage/wiki",
-  "keywords": [ "crafity", "storage", "database", "provider", "couchdb", "MongoDB", "mongoose", "nano", "couch-client", "persistence" ],
+  "keywords": [ "crafity", "storage", "database", "provider", "couchdb", "MongoDB", "mongoose", "nano", "couch-client", "persistence", "redis", "filesystem" ],
   "maintainers": [
     {
       "name": "Bart Riemens",
