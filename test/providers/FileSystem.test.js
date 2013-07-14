@@ -37,9 +37,9 @@ var jstest = require('crafity-jstest')
     var tests = {
       "FileSystem---> When the FileSystem provider is instaniated without any configuration Then an error must be thrown": function (context) {
         try {
-          var fs = new FileSystem();
+          var filesystem = new FileSystem();
           assert.fail("Expected a configuration error");
-          fs.toString();
+          filesystem.toString();
           
         } catch (err) {
           assert.hasValue(err, "Expected a configuration error");
