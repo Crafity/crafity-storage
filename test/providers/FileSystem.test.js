@@ -15,15 +15,12 @@
 
 var jstest = require('crafity-jstest')
   , core = require('crafity-core')
-  , fs = require('crafity-filesystem')
   , FileSystem = require('../../lib/providers/FileSystem.js')
   , assert = jstest.assert
   , context = jstest.createContext("Filesystem provider tests")
   ;
 
 (function () {
-
-  console.log("Testing 'FileSystem.js' in crafity-storage... ");
 
   var config = {
       "name": "MyFileSystem",
