@@ -1,7 +1,7 @@
 {
   "name": "crafity-storage",
   "description": "Generic storage provider",
-  "version": "0.0.11",
+  "version": "0.1.0",
   "author": "Galina Slavova <galina@crafity.com>",
   "homepage": "https://github.com/Crafity/crafity-storage/wiki",
   "keywords": [ "crafity", "storage", "database", "provider", "couchdb", "MongoDB", "mongoose", "nano", "couch-client", "persistence", "redis", "filesystem" ],
@@ -52,9 +52,9 @@
     "mongoose": "2.7.1",
     "node-uuid": "1.4.0",
     "redis": "~0.8.3",
-    "crafity-core": "0.0.14",
-    "crafity-filesystem": "0.0.11",
-    "crafity-jstest": "0.0.5"
+    "crafity-core": "~0.1.0",
+    "crafity-filesystem": "~0.1.0",
+    "crafity-jstest": "~0.1.0"
   },
   "engines": {
     "node": "*"
