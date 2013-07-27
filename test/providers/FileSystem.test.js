@@ -52,19 +52,19 @@ var jstest = require('crafity-jstest')
         var fileSystem = new FileSystem(config)
           , document = { name: "John Doe", age: "35" };
 
-        fileSystem.save(document, function (err, document) {
+        fileSystem.save(document, function (err, savedDocument) {
           if (err) { throw err; }
-          assert.hasValue(document, "Expected the saved document to be returned");
-          fileSystem.remove(document, function (err) {
-            context.complete(err, document);
+          assert.hasValue(savedDocument, "Expected the saved document to be returned");
+          fileSystem.remove(savedDocument, function (err) {
+            context.complete(err, savedDocument);
           });
         });
 
         context.onComplete(function (err, results) {
           if (err) { throw err; }
-          var document = results[0];
-          assert.hasValue(document, "Expected the saved document to be returned");
-          assert.hasValue(document._id, "Expected the saved document to have an _id");
+          var savedDocument = results[0];
+          assert.hasValue(savedDocument, "Expected the saved document to be returned");
+          assert.hasValue(savedDocument._id, "Expected the saved document to have an _id");
         });
       },
       "FileSystem---> When getByKey is called with an existing key Then the correct document must be returned": function (context) {
@@ -76,11 +76,11 @@ var jstest = require('crafity-jstest')
         fileSystem.save(document, function (err, savedDocument) {
           if (err) { throw err; }
           assert.hasValue(savedDocument, "Expected the saved document to be returned");
-          fileSystem.getByKey(savedDocument._id, function (err, document) {
+          fileSystem.getByKey(savedDocument._id, function (err, fetchedDocument) {
             if (err) { throw err; }
-            assert.hasValue(document, "Expected the saved document to be returned");
-            fileSystem.remove(document, function (err, document) {
-              context.complete(err, savedDocument, document);
+            assert.hasValue(fetchedDocument, "Expected the saved document to be returned");
+            fileSystem.remove(fetchedDocument, function (err, fetchedDocument) {
+              context.complete(err, savedDocument, fetchedDocument);
             });
           });
         });
@@ -88,13 +88,13 @@ var jstest = require('crafity-jstest')
         context.onComplete(function (err, results) {
           if (err) { throw err; }
           var savedDocument = results[0]
-            , document = results[1];
+            , fetchedDocument = results[1];
 
           assert.hasValue(savedDocument, "Expected the saved document to be returned");
           assert.hasValue(savedDocument._id, "Expected the saved document to have an _id");
 
-          assert.hasValue(document, "Expected the fetched document to be returned");
-          assert.areEqual(savedDocument._id, document._id, "Expected the fetched document to have the same _id as the saved document");
+          assert.hasValue(fetchedDocument, "Expected the fetched document to be returned");
+          assert.areEqual(savedDocument._id, fetchedDocument._id, "Expected the fetched document to have the same _id as the saved document");
 
         });
       }
