@@ -35,18 +35,18 @@ var jstest = require('crafity-jstest')
      * The tests
      */
     var tests = {
-      "FileSystem---> When the FileSystem provider is instaniated without any configuration Then an error must be thrown": function (context) {
+      "When the FileSystem provider is instaniated without any configuration Then an error must be thrown": function (context) {
         try {
           var filesystem = new FileSystem();
           assert.fail("Expected a configuration error");
           filesystem.toString();
-          
+
         } catch (err) {
           assert.hasValue(err, "Expected a configuration error");
           assert.areEqual("Expected a FileSystem configuration", err.message, "Expected another configuration error message");
         }
       },
-      "FileSystem---> When save is called with a new document Then the new document must be saved and get a file system id": function (context) {
+      "When save is called with a new document Then the new document must be saved and get a file system id": function (context) {
         context.async(3000);
 
         var fileSystem = new FileSystem(config)
@@ -67,7 +67,7 @@ var jstest = require('crafity-jstest')
           assert.hasValue(savedDocument._id, "Expected the saved document to have an _id");
         });
       },
-      "FileSystem---> When getByKey is called with an existing key Then the correct document must be returned": function (context) {
+      "When getByKey is called with an existing key Then the correct document must be returned": function (context) {
         context.async(3000);
 
         var fileSystem = new FileSystem(config)
