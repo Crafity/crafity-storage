@@ -1,7 +1,7 @@
 {
   "name": "crafity-storage",
   "description": "Generic storage provider. Single interface or abstraction for different databases.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "Galina Slavova <galina@crafity.com> and Bart Riemens <briemens@crafity.com>",
   "homepage": "https://github.com/Crafity/crafity-storage/wiki",
   "keywords": [ "crafity", "storage", "database", "provider", "couchdb", "MongoDB", "mongoose", "nano", "couch-client", "persistence", "redis", "filesystem" ],
