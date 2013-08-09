@@ -1,2 +1,2 @@
-#!/bin/sh
+#!/bin/bash
 export ScriptsDir="`dirname $0`"

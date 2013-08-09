@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 $ScriptDir/npm-jslint.sh
 export ErrorCode=$?
 if [ "0" != "$ErrorCode" ]; then
