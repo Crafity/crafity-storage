@@ -155,6 +155,8 @@ jstest.run({
 
 	"storage---> When getProvider is called with a MongoDB provider Then it should return the correct provider": function () {
 
+		var storage = new Storage(config)
+			, provider = storage.getProvider(config.connections.Geo);
 
 		assert.hasValue(provider, "Expected a provider");
 		assert.areEqual("MongoDB", provider.type, "Expected a provider of type MongoDB");
@@ -162,3 +164,4 @@ jstest.run({
 
 });
 
+module.exports = jstest;
