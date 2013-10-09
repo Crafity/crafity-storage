@@ -11,9 +11,11 @@
 /**
  * Test dependencies.
  */
-var jstest = require('crafity-jstest').createContext("Crafity Storage Tests")
-	, Storage = require('../lib/crafity.storage.js').Storage
-	, core = require('crafity-core')
+var jstest = require('crafity-jstest').createContext("Crafity Storage Tests");
+var crafityStorage = require('../lib/crafity.storage.js');
+var CrafityStorage = crafityStorage.Storage;
+
+var core = require('crafity-core')
 	, objects = core.objects
 	, assert = jstest.assert
 	, config = {
@@ -48,7 +50,7 @@ jstest.run({
 	"storage---> When loading repositories with no configuration Then an error must be thrown": function (context) {
 		context.async(3000);
 
-		var storage = new Storage();
+		var storage = new CrafityStorage();
 
 		storage.loadRepositories(function (err, repositories) {
 			context.complete(err, repositories);
@@ -69,7 +71,7 @@ jstest.run({
 			"connection": "Geo"
 		};
 
-		var storage = new Storage(customConfig);
+		var storage = new CrafityStorage(customConfig);
 
 		storage.loadRepositories(customConfig, function (err, repositories) {
 			context.complete(err, repositories);
@@ -84,7 +86,7 @@ jstest.run({
 	"storage---> When an existing repository is specified Then loadRepositories must return it": function (context) {
 		context.async(3000);
 
-		var storage = new Storage(config);
+		var storage = new CrafityStorage(config);
 
 		storage.loadRepositories(config, function (err, repositories) {
 			context.complete(err, repositories);
@@ -109,7 +111,7 @@ jstest.run({
 			"connection": "Profiles"
 		};
 
-		var storage = new Storage(customConfig);
+		var storage = new CrafityStorage(customConfig);
 
 		storage.loadRepositories(customConfig, function (err, repositories) {
 			context.complete(err, repositories);
@@ -124,7 +126,7 @@ jstest.run({
 	"storage---> When a repository is said to use a specific provider Then loadRepositories must return the repository with the correct provider": function (context) {
 		context.async(3000);
 
-		var storage = new Storage(config);
+		var storage = new CrafityStorage(config);
 
 		storage.loadRepositories(config, function (err, repositories) {
 			context.complete(err, repositories);
@@ -146,7 +148,7 @@ jstest.run({
 
 	"storage---> When getProvider is called with a CouchDB provider Then it should return the correct provider": function () {
 
-		var storage = new Storage(config)
+		var storage = new CrafityStorage(config)
 			, provider = storage.getProvider(config.connections.Profiles);
 
 		assert.hasValue(provider, "Expected a provider");
@@ -155,7 +157,7 @@ jstest.run({
 
 	"storage---> When getProvider is called with a MongoDB provider Then it should return the correct provider": function () {
 
-		var storage = new Storage(config)
+		var storage = new CrafityStorage(config)
 			, provider = storage.getProvider(config.connections.Geo);
 
 		assert.hasValue(provider, "Expected a provider");
