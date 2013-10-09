@@ -1,6 +1,13 @@
 /*jslint node:true, white: true*/
+"use strict";
+
 require("../test/package.test.js").on("complete", function () {
-  require("../test/crafity.storage.test.js"); 
+  require("../test/providers/Provider.test.js").on("complete", function () {
+    require("../test/providers/CouchDB.Provider.test.js").on("complete", function () {
+      //require("../test/crafity.storage.test.js");
+      return false;
+    });
+  });
 });
 
 //require('./test/crafity.storage.test');
