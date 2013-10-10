@@ -1,180 +1,169 @@
 /*jslint node:true, white: true */
+"use strict";
 /*!
  * crafity.process.test - Filesystem tests
- * Copyright(c) 2011 Crafity
- * Copyright(c) 2012 Galina Slavova
- * Copyright(c) 2012 Bart Riemens
+ * Copyright(c) 2011-2013 Crafity
+ * Copyright(c) 2011-2013 Galina Slavova
+ * Copyright(c) 2011-2013 Bart Riemens
  * MIT Licensed
  */
 
 /**
  * Test dependencies.
  */
-var jstest = require('crafity-jstest')
-  , Storage = require('../lib/crafity.storage.js').Storage
-  , core = require('crafity-core')
-  , objects = core.objects
-  , assert = jstest.assert
-  , context = jstest.createContext()
-  ;
+var jstest = require('crafity-jstest').createContext("Crafity Storage Tests");
+var crafityStorage = require('../lib/crafity.storage.js');
+var CrafityStorage = crafityStorage.Storage;
 
-(function () {
-  "use strict";
+var core = require('crafity-core')
+	, objects = core.objects
+	, assert = jstest.assert
+	, config = {
+		"repositoriesPath": "test/repositories",
+		"providersPath": "../lib/providers",
+		"connections": {
+			"Profiles": {
+				"type": "CouchDB",
+				"url": "http://test:tester@127.0.0.1:5984",
+				"database": "test",
+				"design": "profiles",
+				"view": "profiles"
+			},
+			"Geo": {
+				"type": "MongoDB",
+				"url": "mongodb://test:tester@localhost/crafity-test",
+				"collection": "storage-test"
+			}
+		},
+		"repositories": {
+			"TestRepository": {
+				"connection": "Geo"
+			}
+		}
+	};
 
-// Print out the name of the test module
-  console.log("Testing 'crafity.storage.js' in crafity-storage... ");
+/**
+ * Run the tests
+ */
+jstest.run({
 
-  var config = {
-    "repositoriesPath": "test/repositories",
-    "providersPath": "../lib/providers",
-    "connections": {
-      "Profiles": {
-        "type": "CouchDB",
-        "url": "http://test:tester@127.0.0.1:5984",
-        "database": "test",
-        "design": "profiles",
-        "view": "profiles"
-      },
-      "Geo": {
-        "type": "MongoDB",
-        "url": "mongodb://test:tester@localhost/crafity-test",
-        "collection": "storage-test"
-      }
-    },
-    "repositories": {
-      "TestRepository": {
-        "connection": "Geo"
-      }
-    }
-  };
+	"storage---> When loading repositories with no configuration Then an error must be thrown": function (context) {
+		context.async(3000);
 
-  /**
-   * The tests
-   */
-  var tests = {
+		var storage = new CrafityStorage();
 
-    "storage---> When loading repositories with no configuration Then an error must be thrown": function (context) {
-      context.async(3000);
+		storage.loadRepositories(function (err, repositories) {
+			context.complete(err, repositories);
+		});
 
-      var storage = new Storage();
+		context.onComplete(function (err) {
+			assert.isInstanceOf(Error, err, "Expected an Error");
+			assert.areEqual("There are no repositories configured", err.message, "Expected an error message");
+		});
+	},
 
-      storage.loadRepositories(function (err, repositories) {
-        context.complete(err, repositories);
-      });
+	"storage---> When loading repositories is called with a missing repo Then an error must be thrown": function (context) {
 
-      context.onComplete(function (err) {
-        assert.isInstanceOf(Error, err, "Expected an Error");
-        assert.areEqual("There are no repositories configured", err.message, "Expected an error message");
-      });
-    },
+		context.async(3000);
 
-    "storage---> When loading repositories is called with a missing repo Then an error must be thrown": function (context) {
+		var customConfig = objects.clone(config);
+		customConfig.repositories.MissingRepository = {
+			"connection": "Geo"
+		};
 
-      context.async(3000);
+		var storage = new CrafityStorage(customConfig);
 
-      var customConfig = objects.clone(config);
-      customConfig.repositories.MissingRepository = {
-        "connection": "Geo"
-      };
+		storage.loadRepositories(customConfig, function (err, repositories) {
+			context.complete(err, repositories);
+		});
 
-      var storage = new Storage(customConfig);
+		context.onComplete(function (err) {
+			assert.isInstanceOf(Error, err, "Expected an Error");
+			assert.areEqual("Cannot find repository 'MissingRepository' in the following location '" + process.cwd() + "/test/repositories/MissingRepository'", err.message, "Expected an error message");
+		});
+	},
 
-      storage.loadRepositories(customConfig, function (err, repositories) {
-        context.complete(err, repositories);
-      });
+	"storage---> When an existing repository is specified Then loadRepositories must return it": function (context) {
+		context.async(3000);
 
-      context.onComplete(function (err) {
-        assert.isInstanceOf(Error, err, "Expected an Error");
-        assert.areEqual("Cannot find repository 'MissingRepository' in the following location '" + process.cwd() + "/test/repositories/MissingRepository'", err.message, "Expected an error message");
-      });
-    },
+		var storage = new CrafityStorage(config);
 
-    "storage---> When an existing repository is specified Then loadRepositories must return it": function (context) {
-      context.async(3000);
+		storage.loadRepositories(config, function (err, repositories) {
+			context.complete(err, repositories);
+		});
 
-      var storage = new Storage(config);
+		context.onComplete(function (err, results) {
+			assert.hasNoValue(err, "Did not expect an error");
+			assert.areEqual(1, results.length, "Expected at exactly one result");
+			assert.hasValue(results[0], "Expected a list of repositories");
+			assert.hasValue(results[0].TestRepository, "Expected a test repository");
+			assert.areEqual("TestRepository", results[0].TestRepository.name, "Expected a specific repository");
+		});
 
-      storage.loadRepositories(config, function (err, repositories) {
-        context.complete(err, repositories);
-      });
+	},
 
-      context.onComplete(function (err, results) {
-        assert.hasNoValue(err, "Did not expect an error");
-        assert.areEqual(1, results.length, "Expected at exactly one result");
-        assert.hasValue(results[0], "Expected a list of repositories");
-        assert.hasValue(results[0].TestRepository, "Expected a test repository");
-        assert.areEqual("TestRepository", results[0].TestRepository.name, "Expected a specific repository");
-      });
+	"storage---> When loading an repository that is not a constructor Then an error must be thrown": function (context) {
 
-    },
+		context.async(3000);
 
-    "storage---> When loading an repository that is not a constructor Then an error must be thrown": function (context) {
+		var customConfig = objects.clone(config);
+		customConfig.repositories.InvalidRepository = {
+			"connection": "Profiles"
+		};
 
-      context.async(3000);
+		var storage = new CrafityStorage(customConfig);
 
-      var customConfig = objects.clone(config);
-      customConfig.repositories.InvalidRepository = {
-        "connection": "Profiles"
-      };
+		storage.loadRepositories(customConfig, function (err, repositories) {
+			context.complete(err, repositories);
+		});
 
-      var storage = new Storage(customConfig);
+		context.onComplete(function (err) {
+			assert.isInstanceOf(Error, err, "Expected an Error");
+			assert.areEqual("The repository 'InvalidRepository' does not have a constructor.", err.message, "Expected an error message");
+		});
+	},
 
-      storage.loadRepositories(customConfig, function (err, repositories) {
-        context.complete(err, repositories);
-      });
+	"storage---> When a repository is said to use a specific provider Then loadRepositories must return the repository with the correct provider": function (context) {
+		context.async(3000);
 
-      context.onComplete(function (err) {
-        assert.isInstanceOf(Error, err, "Expected an Error");
-        assert.areEqual("The repository 'InvalidRepository' does not have a constructor.", err.message, "Expected an error message");
-      });
-    },
+		var storage = new CrafityStorage(config);
 
-    "storage---> When a repository is said to use a specific provider Then loadRepositories must return the repository with the correct provider": function (context) {
-      context.async(3000);
+		storage.loadRepositories(config, function (err, repositories) {
+			context.complete(err, repositories);
+		});
 
-      var storage = new Storage(config);
+		context.onComplete(function (err, results) {
+			assert.hasNoValue(err, "Did not expect an error");
+			assert.areEqual(1, results.length, "Expected at exactly one result");
+			var repositories = results[0];
 
-      storage.loadRepositories(config, function (err, repositories) {
-        context.complete(err, repositories);
-      });
+			assert.hasValue(repositories, "Expected a list of repositories");
+			assert.hasValue(repositories.TestRepository, "Expected a test repository");
+			assert.hasValue(repositories.TestRepository.provider, "Expected a specific provider to be set");
+			assert.areEqual("MongoDB", repositories.TestRepository.provider.type, "Expected a specific provider type");
+			assert.areEqual("Geo", repositories.TestRepository.provider.name, "Expected a specific provider name");
+		});
 
-      context.onComplete(function (err, results) {
-        assert.hasNoValue(err, "Did not expect an error");
-        assert.areEqual(1, results.length, "Expected at exactly one result");
-        var repositories = results[0];
+	},
 
-        assert.hasValue(repositories, "Expected a list of repositories");
-        assert.hasValue(repositories.TestRepository, "Expected a test repository");
-        assert.hasValue(repositories.TestRepository.provider, "Expected a specific provider to be set");
-        assert.areEqual("MongoDB", repositories.TestRepository.provider.type, "Expected a specific provider type");
-        assert.areEqual("Geo", repositories.TestRepository.provider.name, "Expected a specific provider name");
-      });
+	"storage---> When getProvider is called with a CouchDB provider Then it should return the correct provider": function () {
 
-    },
+		var storage = new CrafityStorage(config)
+			, provider = storage.getProvider(config.connections.Profiles);
 
-    "storage---> When getProvider is called with a CouchDB provider Then it should return the correct provider": function () {
+		assert.hasValue(provider, "Expected a provider");
+		assert.areEqual("CouchDB", provider.type, "Expected a provider of type CouchDB");
+	},
 
-      var storage = new Storage(config)
-        , provider = storage.getProvider(config.connections.Profiles);
+	"storage---> When getProvider is called with a MongoDB provider Then it should return the correct provider": function () {
 
-      assert.hasValue(provider, "Expected a provider");
-      assert.areEqual("CouchDB", provider.type, "Expected a provider of type CouchDB");
-    },
+		var storage = new CrafityStorage(config)
+			, provider = storage.getProvider(config.connections.Geo);
 
-    "storage---> When getProvider is called with a MongoDB provider Then it should return the correct provider": function () {
+		assert.hasValue(provider, "Expected a provider");
+		assert.areEqual("MongoDB", provider.type, "Expected a provider of type MongoDB");
+	}
 
-      var storage = new Storage(config)
-        , provider = storage.getProvider(config.connections.Geo);
+});
 
-      assert.hasValue(provider, "Expected a provider");
-      assert.areEqual("MongoDB", provider.type, "Expected a provider of type MongoDB");
-    }
-
-  };
-
-  /**
-   * Run the tests
-   */
-  context.run(tests);
-
-}());
+module.exports = jstest;

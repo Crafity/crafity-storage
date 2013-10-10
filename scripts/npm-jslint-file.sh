@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 export filename=`basename $1`
 if [[ $filename == "~"* ]]; then

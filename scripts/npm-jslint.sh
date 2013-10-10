@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 export ScriptsDir="`dirname $0`"
 export RootDir="$ScriptsDir/.."
