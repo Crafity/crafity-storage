@@ -23,10 +23,12 @@ var EventEmitter = require('events').EventEmitter;
  * Run all the tests
  */
 jstest.run({
+	
   "Instantiate the generic provider and the type property should be set to be the generic provider": function () {
     var provider = new Provider();
     assert.areEqual("Generic Provider", provider.type, "Expected another provider name");
   },
+	
   "Instantiate the generic provider and check if it has the EventEmitter as prototype": function () {
     var provider = new Provider();
     var eventEmitted = false;
@@ -45,6 +47,7 @@ jstest.run({
     
     assert.isTrue(eventEmitted, "Expected event to be emitted properly");
   },
+	
   "Test if the connect function exists and throws a Not Implemeted exception when called": function () {
     var provider = new Provider();
     var expectedErr;
@@ -60,6 +63,7 @@ jstest.run({
     assert.hasValue(expectedErr, "Expected an error");
     assert.areEqual("Not implemented", expectedErr.message, "Expected another error message");
   },
+	
   "Test if the disconnect function exists and throws a Not Implemeted exception when called": function () {
     var provider = new Provider();
     var expectedErr;
@@ -75,6 +79,7 @@ jstest.run({
     assert.hasValue(expectedErr, "Expected an error");
     assert.areEqual("Not implemented", expectedErr.message, "Expected another error message");
   },
+	
   "Test if the dispose function exists and throws a Not Implemeted exception when called": function () {
     var provider = new Provider();
     var expectedErr;
@@ -90,6 +95,7 @@ jstest.run({
     assert.hasValue(expectedErr, "Expected an error");
     assert.areEqual("Not implemented", expectedErr.message, "Expected another error message");
   },
+	
   "Test if the save function exists and throws a Not Implemeted exception when called": function () {
     var provider = new Provider();
     var expectedErr;
@@ -105,6 +111,7 @@ jstest.run({
     assert.hasValue(expectedErr, "Expected an error");
     assert.areEqual("Not implemented", expectedErr.message, "Expected another error message");
   },
+	
   "Test if the remove function exists and throws a Not Implemeted exception when called": function () {
     var provider = new Provider();
     var expectedErr;
@@ -120,6 +127,7 @@ jstest.run({
     assert.hasValue(expectedErr, "Expected an error");
     assert.areEqual("Not implemented", expectedErr.message, "Expected another error message");
   },
+	
   "Test if the findByKey function exists and throws a Not Implemeted exception when called": function () {
     var provider = new Provider();
     var expectedErr;
@@ -135,6 +143,7 @@ jstest.run({
     assert.hasValue(expectedErr, "Expected an error");
     assert.areEqual("Not implemented", expectedErr.message, "Expected another error message");
   },
+	
   "Test if the findAll function exists and throws a Not Implemeted exception when called": function () {
     var provider = new Provider();
     var expectedErr;
