@@ -488,6 +488,12 @@ jstest.run({
 			});
 		});
 
+	},
+	"Test if the isConnected function returns true after initialisation": function () {
+		var couchDB = new CouchDB(createConfig(), nano);
+		
+		assert.isTrue(couchDB.isConnected(), "Expected isConnected to return true by default");
+	},
 	"Test if the connect function checks all its arguments properly": function () {
 		var couchDB = new CouchDB(createConfig(), nano);
 		
