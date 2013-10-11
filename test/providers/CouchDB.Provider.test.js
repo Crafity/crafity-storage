@@ -488,6 +488,24 @@ jstest.run({
 			});
 		});
 
+	"Test if the connect function checks all its arguments properly": function () {
+		var couchDB = new CouchDB(createConfig(), nano);
+		
+		assert.expectError(function () {
+			couchDB.connect("Nonsense argument");
+		}, "Argument 'callback' must be of type Function");
+	},
+	"Test the connect function and check if call the callback": function (test) {
+		test.async(1000);
+		
+		var couchDB = new CouchDB(createConfig(), nano);
+		
+		couchDB.connect(function () {
+			assert.isTrue(couchDB.isConnected(), "Expected isConnected to return true by default");
+			test.complete();
+		});
+		
+	},
 	}
 });
 
