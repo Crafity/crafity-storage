@@ -506,6 +506,23 @@ jstest.run({
 		});
 		
 	},
+	"Test if the disconnect function checks all its arguments properly": function () {
+		var couchDB = new CouchDB(createConfig(), nano);
+		
+		assert.expectError(function () {
+			couchDB.disconnect("Nonsense argument");
+		}, "Argument 'callback' must be of type Function");
+	},
+	"Test the disconnect function and check if call the callback": function (test) {
+		test.async(1000);
+		
+		var couchDB = new CouchDB(createConfig(), nano);
+		
+		couchDB.disconnect(function () {
+			assert.isTrue(couchDB.isConnected(), "Expected isConnected to return true even after disconnection");
+			test.complete();
+		});
+		
 	}
 });
 
