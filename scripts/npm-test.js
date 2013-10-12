@@ -2,12 +2,13 @@
 "use strict";
 
 require("../test/package.test.js").on("complete", function () {
-  require("../test/providers/Provider.test.js").on("complete", function () {
-    require("../test/providers/CouchDB.Provider.test.js").on("complete", function () {
-      //require("../test/crafity.storage.test.js");
-      return false;
-    });
-  });
+	require("../test/providers/Provider.test.js").on("complete", function () {
+		require("../test/providers/CouchDB.Provider.test.js").on("complete", function () {
+			require("../test/providers/MongoDB.Provider.test.js").on("complete", function () {
+				return false;
+			});
+		});
+	});
 });
 
 //require('./test/crafity.storage.test');
