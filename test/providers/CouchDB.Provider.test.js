@@ -116,6 +116,7 @@ jstest.run({
 		assert.areEqual("crafity-storage", couchDB.database, "Expected another provider name");
 		assert.areEqual("design", couchDB.design, "Expected another provider name");
 		assert.areEqual("view", couchDB.view, "Expected another provider name");
+		assert.isSame(config, couchDB.config, "Expected exactly the same configuration");
 	},
 	"Instantiate the CouchDB provider and check if it has the Generic Provider as its prototype": function () {
 		var couchDB = new CouchDB(config, nano);
