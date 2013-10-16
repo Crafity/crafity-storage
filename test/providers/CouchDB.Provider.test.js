@@ -67,22 +67,6 @@ function createConfig() {
 	testConfig.database = "db" + Math.floor(Math.random() * 100000).toString();
 	return testConfig;
 }
-/**
- * Create a new database by dropping and creating a new database
- * @param couchDB A configured CouchDB instance
- * @param callback The callback to call when the DB is recreated
- */
-function recreateDB(couchDB, callback) {
-	nano(couchDB.url).db.destroy(couchDB.database, function (err) {
-		if (err && err.error !== "not_found") {
-			return callback(err);
-		}
-		return nano(couchDB.url).db.create(couchDB.database, callback);
-	});
-}
-function deleteDB(couchDB, callback) {
-	nano(couchDB.url).db.destroy(couchDB.database, callback);
-}
 
 /**
  * Run all the tests
@@ -121,6 +105,77 @@ jstest.run({
 	"Instantiate the CouchDB provider and check if it has the Generic Provider as its prototype": function () {
 		var couchDB = new CouchDB(config, nano);
 		assert.isInstanceOf(Provider, couchDB[PROTO_PROPERY], "Expected the Generic Provider to be the prototype");
+	},
+	
+	"Test the create function to see if it creates the database": function (test) {
+		test.async(1000);
+
+		var couchDB = new CouchDB(createConfig(), nano);
+
+		var steps = [
+			function Proof_There_Is_No_Database(next) {
+				couchDB.findByKey(123, next);
+			},
+			function Create_The_Database(next, err, result) {
+				assert.hasValue(err, "expected an error");
+				assert.areEqual("Database '" + couchDB.database + "' not found.", err.message, "expected an error message");
+				couchDB.create(next);				
+			},
+			function Verify_The_Database_Is_There(next) {
+				couchDB.findByKey(123, next);
+			},
+			function Assert(next, err) {
+				assert.hasValue(err, "expected an error");
+				assert.areEqual("Item with key '123' does not exist", err.message, "expected an error message");
+				next();
+			}
+		];
+
+		test.steps(steps).on("complete", function (err) {
+			couchDB.drop(function (deleteErr) {
+				if (deleteErr) { return test.complete(deleteErr); }
+				test.complete(err);
+			});
+		});
+	},
+	"Test the drop function to see if it deletes the database": function (test) {
+		test.async(1000);
+
+		var couchDB = new CouchDB(createConfig(), nano);
+
+		var steps = [
+			function Create_The_Database(next, err, result) {
+				couchDB.create(next);				
+			},
+			function Verify_The_Database_Is_There(next, err) {
+				if (err) { throw err; }
+				couchDB.findByKey(123, next);
+			},
+			function Drop_The_Database(next, err) {
+				assert.hasValue(err, "expected an error");
+				assert.areEqual("Item with key '123' does not exist", err.message, "expected an error message");
+				couchDB.drop(next);				
+			},
+			function Test_The_Database(next, err, result) {
+				if (err) { throw err; }
+				couchDB.findByKey(123, next);
+			},
+			function Verify_Outcome(next, err) {
+				assert.hasValue(err, "expected an error");
+				assert.areEqual("Database '" + couchDB.database + "' not found.", err.message, "expected an error message");
+				next();
+			},
+			function Drop_The_Database(next) {
+				couchDB.drop(next);				
+			},
+			function (next, err) {
+				assert.hasValue(err, "expected an error");
+				assert.areEqual("Database '" + couchDB.database + "' not found.", err.message, "expected an error message");
+				next();
+			}
+		];
+
+		test.steps(steps).on("complete", test.complete);
 	},
 	
 	"Test if the isConnected function returns true after initialisation": function () {
@@ -185,7 +240,7 @@ jstest.run({
 
 		var steps = [
 			function Create_Test_Database(next) {
-				recreateDB(couchDB, next);
+				couchDB.recreate(next);
 			},
 
 			function Insert_Test_Data(next, err) {
@@ -209,13 +264,14 @@ jstest.run({
 		];
 
 		test.steps(steps).on("complete", function (err) {
-			deleteDB(couchDB, function (deleteErr) {
-				if (deleteErr) { throw deleteErr; }
+			couchDB.drop(function (deleteErr) {
+				if (deleteErr) { return test.complete(deleteErr); }
 				test.complete(err);
 			});
 		});
 
 	},
+	
 	"Test if the findByKey function checks all its arguments properly": function () {
 		var couchDB = new CouchDB(createConfig(), nano);
 
@@ -250,7 +306,7 @@ jstest.run({
 
 		var steps = [
 			function Create_Test_Database(next) {
-				recreateDB(couchDB, next);
+				couchDB.recreate(next);
 			},
 
 			function Insert_Test_Data(next, err) {
@@ -273,8 +329,8 @@ jstest.run({
 		];
 
 		test.steps(steps).on("complete", function (err) {
-			deleteDB(couchDB, function (deleteErr) {
-				if (deleteErr) { throw deleteErr; }
+			couchDB.drop(function (deleteErr) {
+				if (deleteErr) { return test.complete(deleteErr); }
 				test.complete(err);
 			});
 		});
@@ -291,7 +347,7 @@ jstest.run({
 
 		var steps = [
 			function Create_Test_Database(next) {
-				recreateDB(couchDB, next);
+				couchDB.recreate(next);
 			},
 
 			function Insert_Test_Data(next, err) {
@@ -312,8 +368,8 @@ jstest.run({
 		];
 
 		test.steps(steps).on("complete", function (err) {
-			deleteDB(couchDB, function (deleteErr) {
-				if (deleteErr) { throw deleteErr; }
+			couchDB.drop(function (deleteErr) {
+				if (deleteErr) { return test.complete(deleteErr); }
 				test.complete(err);
 			});
 		});
@@ -388,7 +444,7 @@ jstest.run({
 
 		var steps = [
 			function Create_Test_Database(next) {
-				recreateDB(couchDB, next);
+				couchDB.recreate(next);
 			},
 			function Save_Actual_Data(next, err) {
 				if (err) { throw err; }
@@ -421,9 +477,10 @@ jstest.run({
 		];
 
 		test.steps(steps).on("complete", function (err, data) {
-			deleteDB(couchDB, function (deleteErr) {
-				if (deleteErr) { throw deleteErr; }
+			couchDB.drop(function (deleteErr) {
+				if (deleteErr) { return test.complete(deleteErr); }
 				test.complete(err, data);
+				
 			});
 		});
 	},
@@ -437,7 +494,7 @@ jstest.run({
 
 		var steps = [
 			function Create_Test_Database(next) {
-				recreateDB(couchDB, next);
+				couchDB.recreate(next);
 			},
 			function Save_Actual_Data(next) {
 				couchDB.save(originalData, next);
@@ -478,8 +535,8 @@ jstest.run({
 		];
 
 		test.steps(steps).on("complete", function (err, data) {
-			deleteDB(couchDB, function (deleteErr) {
-				if (deleteErr) { throw deleteErr; }
+			couchDB.drop(function (deleteErr) {
+				if (deleteErr) { return test.complete(deleteErr); }
 				test.complete(err, data);
 			});
 		});
@@ -512,7 +569,7 @@ jstest.run({
 
 		var steps = [
 			function Create_Test_Database(next) {
-				recreateDB(couchDB, next);
+				couchDB.recreate(next);
 			},
 			function Remove_The_NonExistent_Data(next) {
 				couchDB.remove(data, next);
@@ -525,8 +582,8 @@ jstest.run({
 		];
 
 		test.steps(steps).on("complete", function (err, data) {
-			deleteDB(couchDB, function (deleteErr) {
-				if (deleteErr) { throw deleteErr; }
+			couchDB.drop(function (deleteErr) {
+				if (deleteErr) { return test.complete(deleteErr); }
 				test.complete(err, data);
 			});
 		});
@@ -543,7 +600,7 @@ jstest.run({
 
 		var steps = [
 			function Create_Test_Database(next) {
-				recreateDB(couchDB, next);
+				couchDB.recreate(next);
 			},
 
 			function Insert_Test_Data(next, err) {
@@ -553,14 +610,8 @@ jstest.run({
 
 			function Run_The_Actual_Test(next, err, updatedTestData) {
 				// Update the revisions of the local data...
-				updatedTestData.forEach(function (updatedItem) {
-					testData.forEach(function (originalItem) {
-						if (originalItem._id !== updatedItem.id) { return; }
-						originalItem._rev = updatedItem.rev;
-					});
-				});
 				if (err) { throw err; }
-				couchDB.remove(testData[1], next);
+				couchDB.remove(updatedTestData[1], next);
 			},
 
 			function Get_All_The_Data(next, err) {
@@ -579,8 +630,8 @@ jstest.run({
 		];
 
 		test.steps(steps).on("complete", function (err) {
-			deleteDB(couchDB, function (deleteErr) {
-				if (deleteErr) { throw deleteErr; }
+			couchDB.drop(function (deleteErr) {
+				//if (deleteErr) { return test.complete(deleteErr); }
 				test.complete(err);
 			});
 		});
