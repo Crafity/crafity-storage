@@ -48,6 +48,38 @@ jstest.run({
 		assert.isTrue(eventEmitted, "Expected event to be emitted properly");
 	},
 
+	"Test if the create function exists and throws a Not Implemeted exception when called": function () {
+		var provider = new Provider();
+		var expectedErr;
+
+		try {
+			provider.create(function () {
+				return false;
+			});
+		} catch (err) {
+			expectedErr = err;
+		}
+
+		assert.hasValue(expectedErr, "Expected an error");
+		assert.areEqual("Not implemented", expectedErr.message, "Expected another error message");
+	},
+
+	"Test if the drop function exists and throws a Not Implemeted exception when called": function () {
+		var provider = new Provider();
+		var expectedErr;
+
+		try {
+			provider.drop(function () {
+				return false;
+			});
+		} catch (err) {
+			expectedErr = err;
+		}
+
+		assert.hasValue(expectedErr, "Expected an error");
+		assert.areEqual("Not implemented", expectedErr.message, "Expected another error message");
+	},
+
 	"Test if the connect function exists and throws a Not Implemeted exception when called": function () {
 		var provider = new Provider();
 		var expectedErr;
