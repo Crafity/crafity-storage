@@ -80,9 +80,6 @@ function recreateDB(couchDB, callback) {
 		return nano(couchDB.url).db.create(couchDB.database, callback);
 	});
 }
-function loadData(couchDB, data, callback) {
-	nano(couchDB.url).db.use(couchDB.database).bulk(data, callback);
-}
 function deleteDB(couchDB, callback) {
 	nano(couchDB.url).db.destroy(couchDB.database, callback);
 }
@@ -149,7 +146,7 @@ jstest.run({
 
 			function Insert_Test_Data(next, err) {
 				if (err) { throw err; }
-				loadData(couchDB, { docs: testData }, next);
+				couchDB.saveMany(testData, next);
 			},
 
 			function Run_The_Actual_Test(next, err) {
@@ -214,7 +211,7 @@ jstest.run({
 
 			function Insert_Test_Data(next, err) {
 				if (err) { throw err; }
-				loadData(couchDB, { docs: testData }, next);
+				couchDB.saveMany(testData, next);
 			},
 
 			function Run_The_Actual_Test(next, err) {
@@ -255,7 +252,7 @@ jstest.run({
 
 			function Insert_Test_Data(next, err) {
 				if (err) { throw err; }
-				loadData(couchDB, { docs: testData }, next);
+				couchDB.saveMany(testData, next);
 			},
 
 			function Run_The_Actual_Test(next, err) {
@@ -502,7 +499,7 @@ jstest.run({
 
 			function Insert_Test_Data(next, err) {
 				if (err) { throw err; }
-				loadData(couchDB, { docs: testData }, next);
+				couchDB.saveMany(testData, next);
 			},
 
 			function Run_The_Actual_Test(next, err, updatedTestData) {
