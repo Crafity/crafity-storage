@@ -1,4 +1,4 @@
-/*jslint node:true, white:true */
+/*jslint node:true, white:true, evil: true */
 "use strict";
 
 var _servers = { "http://test:test@localhost:5984/": {} };
@@ -15,8 +15,13 @@ function nanoMock(url) {
 		db: {
 			destroy: function (database, callback) {
 				if (verbose) { console.log("Destroy database '" + database + "'"); }
+				if (!_databases[database]) {
+					return process.nextTick(function () {
+						callback(new Error("Database '" + database + "' not found."));
+					});
+				}
 				delete _databases[database];
-				process.nextTick(callback);
+				return process.nextTick(callback);
 			},
 			create: function (database, callback) {
 				if (verbose) { console.log("Create database '" + database + "'"); }
@@ -25,7 +30,7 @@ function nanoMock(url) {
 			},
 			use: function (database) {
 				if (verbose) { console.log("Use database '" + database + "'"); }
-				return {
+				var db = {
 					bulk: function (data, callback) {
 						_databases[database] = JSON.parse(JSON.stringify(data)).docs;
 						if (verbose) { console.log("Bulk load data '" + JSON.stringify(data) + "'"); }
@@ -56,18 +61,24 @@ function nanoMock(url) {
 						}
 						process.nextTick(function () {
 							var rows = _databases[database];
+							if (!rows) { return callback(new Error("Database '" + database + "' not found.")); }
 							if (verbose) { console.log("Fetch data with params '" + JSON.stringify(params) + "'"); }
+
+							if (params.keys && !(params.keys instanceof Array)) {
+								callback("The parameters keys must be an array");
+							}
+
+							if (params.keys && params.keys.length === 1) {
+								rows = rows.filter(function (row) {
+									return row._id === params.keys[0];
+								});
+							}
 							if (params.include_docs) {
 								rows = rows.map(function (row) {
 									return { id: row._id, rev: row._rev, doc: row };
 								});
 							}
-							if (params.keys && params.keys.length === 1) {
-								rows = rows.filter(function(row) {
-									return row.id === params.keys[0];
-								});
-							}
-							callback(null, { rows: rows });
+							return callback(null, { rows: rows });
 						});
 					},
 					"insert": function (data, rev, callback) {
@@ -75,38 +86,39 @@ function nanoMock(url) {
 							callback = rev;
 							rev = undefined;
 						}
-						process.nextTick(function () {
-							var result;
-							var revParts;
-							var newRev = '1-15f65339921e497348be384867bb940f';
-							var clone = JSON.parse(JSON.stringify(data));
+						var result;
+						var revParts;
+						var newRev = '1-15f65339921e497348be384867bb940f';
+						var clone = JSON.parse(JSON.stringify(data));
 
-							if (data._rev) {
-								revParts = data._rev.split("-");
-								newRev = (parseInt(revParts[0], 10) + 1).toString() + "-" + revParts[1];
-							}
-							result = { ok: true,
-								id: data._id || '3a04d1eded7ea3c389b5680c36049a3a',
-								rev: newRev
-							};
-							clone._rev = newRev;
-							clone._id = clone._id || result.id;
-							
-							if (verbose) { console.log("Insert new data", clone); }
-							
-							var existingItems = _databases[database].filter(function(item) {
-								return item._id === clone._id;
-							});
-							existingItems.forEach(function (item) {
-								_databases[database].splice(_databases[database].indexOf(item), 1);
-							});
-							_databases[database].push(clone);
-							callback(null, result);
+						if (data._rev) {
+							revParts = data._rev.split("-");
+							newRev = (parseInt(revParts[0], 10) + 1).toString() + "-" + revParts[1];
+						}
+
+						result = { ok: true,
+							id: data._id || Math.round(Math.random() * 9) + 'a04d1eded7ea3c389b5680c36049a3' + Math.round(Math.random() * 9),
+							rev: newRev
+						};
+						clone._rev = newRev;
+						clone._id = clone._id || result.id;
+
+						if (verbose) { console.log("Insert new data", clone); }
+
+						var existingItems = _databases[database].filter(function (item) {
+							return item._id === clone._id;
+						});
+						existingItems.forEach(function (item) {
+							_databases[database].splice(_databases[database].indexOf(item), 1);
+						});
+						_databases[database].push(clone);
+						process.nextTick(function () {
+							return callback(null, result);
 						});
 					},
 					"destroy": function (id, rev, callback) {
 						process.nextTick(function () {
-							var existingItems = _databases[database].filter(function(item) {
+							var existingItems = _databases[database].filter(function (item) {
 								return item._id === id && item._rev === rev;
 							});
 							existingItems.forEach(function (item) {
@@ -117,8 +129,33 @@ function nanoMock(url) {
 							}
 							callback(null, id, rev);
 						});
+					},
+					"view": function (designName, viewName, params, callback) {
+						// Find the right view
+						db.fetch({ keys: [ "_design/" + designName ] }, function (err, designs) {
+							if (err) { throw err; }
+							if (!designs || !designs.rows || designs.rows.length !== 1) { throw new Error('Cannot find the design'); }
+							var view = designs.rows[0].views[viewName];
+							var mapString = view.map;
+							var mapFunc = new Function("emit=arguments[0]; return " + mapString + ";");
+							var matches = _databases[database].map(function (doc) {
+								var _key, _value;
+								mapFunc(function (key, value) {
+									_key = key;
+									_value = value;
+								})(doc);
+								return { key: _key, value: _value };
+							}).filter(function (emitted) {
+									return emitted.key === params.keys[0];
+								}).map(function (result) {
+									return result.value;
+								});
+							var body = { rows: matches };
+							return callback(err, body);
+						});
 					}
 				};
+				return db;
 			}
 		}
 	};
