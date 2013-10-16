@@ -278,6 +278,57 @@ jstest.run({
 		});
 
 	},
+	
+	"Test the findManyByKey function using multiple documents with the same key": function (test) {
+		test.async(9000);
+
+		var couchDB = new CouchDB(createConfig(), nano);
+
+		var steps = [
+			function (next) {
+				couchDB.recreate(function () {
+					couchDB.save({
+						"_id": "_design/testDesign",
+						"language": "javascript",
+						"views": {
+							"testView": {
+								"map": "function(doc) {\n  emit(doc.value, doc);\n}"
+							}
+						}
+					}, function () {
+						couchDB.save({value: 123}, function () {
+							couchDB.save({value: 123}, function () {
+								couchDB.save({value: 456}, function () {
+									var config = couchDB.config;
+									config.design = "testDesign";
+									config.view = "testView";
+									couchDB = new CouchDB(config, nano);
+									next();
+								});
+							});
+						});
+					});
+				});
+			},
+			function (next) {
+				couchDB.findManyByKey(123, next);
+			},
+			function (next, err, data) {
+				if (err) { throw err; }
+				assert.hasValue(data, "Expected data to be returned");
+				assert.areEqual(2, data.length, "Expected the two documents");
+				next();
+			}
+		];
+
+		test.steps(steps).on('complete', function (err) {
+			couchDB.drop(function (deleteErr) {
+				if (deleteErr) { return test.complete(deleteErr); }
+				test.complete(err);
+			});
+		});
+	},
+	
 	"Test if the save function checks all its arguments properly": function () {
 		var couchDB = new CouchDB(createConfig(), nano);
 		assert.expectError(function () {
