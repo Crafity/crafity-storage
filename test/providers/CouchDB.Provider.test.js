@@ -121,6 +121,49 @@ jstest.run({
 		var couchDB = new CouchDB(config, nano);
 		assert.isInstanceOf(Provider, couchDB[PROTO_PROPERY], "Expected the Generic Provider to be the prototype");
 	},
+	
+	"Test if the isConnected function returns true after initialisation": function () {
+		var couchDB = new CouchDB(createConfig(), nano);
+
+		assert.isTrue(couchDB.isConnected(), "Expected isConnected to return true by default");
+	},
+	"Test if the connect function checks all its arguments properly": function () {
+		var couchDB = new CouchDB(createConfig(), nano);
+
+		assert.expectError(function () {
+			couchDB.connect("Nonsense argument");
+		}, "Argument 'callback' must be of type Function");
+	},
+	"Test the connect function and check if call the callback": function (test) {
+		test.async(1000);
+
+		var couchDB = new CouchDB(createConfig(), nano);
+
+		couchDB.connect(function () {
+			assert.isTrue(couchDB.isConnected(), "Expected isConnected to return true by default");
+			test.complete();
+		});
+
+	},
+	"Test if the disconnect function checks all its arguments properly": function () {
+		var couchDB = new CouchDB(createConfig(), nano);
+
+		assert.expectError(function () {
+			couchDB.disconnect("Nonsense argument");
+		}, "Argument 'callback' must be of type Function");
+	},
+	"Test the disconnect function and check if call the callback": function (test) {
+		test.async(1000);
+
+		var couchDB = new CouchDB(createConfig(), nano);
+
+		couchDB.disconnect(function () {
+			assert.isTrue(couchDB.isConnected(), "Expected isConnected to return true even after disconnection");
+			test.complete();
+		});
+
+	},
+	
 	"Test if the findAll function checks all its arguments properly": function () {
 		var couchDB = new CouchDB(createConfig(), nano);
 
@@ -536,47 +579,6 @@ jstest.run({
 			});
 		});
 
-	},
-	"Test if the isConnected function returns true after initialisation": function () {
-		var couchDB = new CouchDB(createConfig(), nano);
-		
-		assert.isTrue(couchDB.isConnected(), "Expected isConnected to return true by default");
-	},
-	"Test if the connect function checks all its arguments properly": function () {
-		var couchDB = new CouchDB(createConfig(), nano);
-		
-		assert.expectError(function () {
-			couchDB.connect("Nonsense argument");
-		}, "Argument 'callback' must be of type Function");
-	},
-	"Test the connect function and check if call the callback": function (test) {
-		test.async(1000);
-		
-		var couchDB = new CouchDB(createConfig(), nano);
-		
-		couchDB.connect(function () {
-			assert.isTrue(couchDB.isConnected(), "Expected isConnected to return true by default");
-			test.complete();
-		});
-		
-	},
-	"Test if the disconnect function checks all its arguments properly": function () {
-		var couchDB = new CouchDB(createConfig(), nano);
-		
-		assert.expectError(function () {
-			couchDB.disconnect("Nonsense argument");
-		}, "Argument 'callback' must be of type Function");
-	},
-	"Test the disconnect function and check if call the callback": function (test) {
-		test.async(1000);
-		
-		var couchDB = new CouchDB(createConfig(), nano);
-		
-		couchDB.disconnect(function () {
-			assert.isTrue(couchDB.isConnected(), "Expected isConnected to return true even after disconnection");
-			test.complete();
-		});
-		
 	}
 });
 
