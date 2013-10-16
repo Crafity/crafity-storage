@@ -483,6 +483,11 @@ jstest.run({
 			});
 		});
 	},
+	
+	"Test the saveMany function and see if it stores multiple documents at once": function () {
+		return false;
+	},
+	
 	"Test if the remove function checks all its arguments properly": function () {
 		var couchDB = new CouchDB(createConfig(), nano);
 		assert.expectError(function () {
