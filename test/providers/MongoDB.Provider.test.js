@@ -40,7 +40,7 @@ var config = {
  */
 function createConfig() {
 	var testConfig = JSON.parse(JSON.stringify(config));
-//	testConfig.database = "db" + Math.floor(Math.random() * 100000).toString();
+	testConfig.url += Math.floor(Math.random() * 100000).toString();
 	return testConfig;
 }
 
@@ -259,7 +259,7 @@ jstest.run({
 		}, "Missing 'callback' argument.");
 
 		assert.expectError(function () {
-			mongoDB.create({}, "nocallback");
+			mongoDB.create("nocallback");
 		}, "Argument 'callback' must be of type Function.");
 	},
 
@@ -268,37 +268,74 @@ jstest.run({
 
 		var config = createConfig();
 		config.schema = {name: String};
-
 		var mongoDB = new MongoDB(config);
 
 		var steps = [
 
-			function Create_Database(next) {
+			function Connect_To_Nonexisting_Database(next) {
+				mongoDB.connect(next);
+			},
+			function FindAll_To_Nonexisting_Database(next, err) {
+				assert.hasNoValue(err, "Expected error to have no value.");
+				mongoDB.findAll(next);
+			},
+			function Assert_No_Found_Documents_And_Then_Create_Database(next, err, foundDocuments) {
+				// when no database is created, but its name is mentioned in the config.url
+				assert.hasNoValue(err, "Expected error to have no value.");
+				assert.areEqual(0, foundDocuments.length, "Expected the length of the found documents to be 0.");
+
+				// then I expect an error to be thrown then calling connect
+				// this is not the case
 				mongoDB.create(next);
 			},
-			function Assert_Created_Database(next) {
+			function Insert_A_Test_Documents(next, err) {
+				assert.hasNoValue(err, "Expected error to have no value.");
+				mongoDB.save({name: "Galina"}, next);
+			},
+			function Assert_Saved_Document_And_FindAll(next, err, savedData) {
+				assert.hasNoValue(err, "Expected error to have no value.");
+				assert.areEqual("Galina", savedData.name, "Expected values to be the same.");
+				mongoDB.findAll(next);
+			},
+			function Assert_One_Document_Is_Insterted(next, err, foundDocuments) {
+				assert.hasNoValue(err, "Expected the error to have no value.");
+				assert.areEqual(1, foundDocuments.length, "Expected 1 document to be found.");
 				next();
-			}];
+			}
+		];
 
 		test.steps(steps).on("complete", function (err) {
-			test.complete(err);
+			mongoDB.drop(function (deleteErr) {
+				if (deleteErr) {
+					throw deleteErr;
+				}
+				test.complete(err);
+			});
 		});
+	},
+
+	"Test if drop function checks all its arguments properly": function () {
+		var mongoDB = new MongoDB(createConfig());
+
+		assert.expectError(function () {
+			mongoDB.drop();
+		}, "Missing 'callback' argument.");
+		assert.expectError(function () {
+			mongoDB.drop("nocallback");
+		}, "Argument 'callback' must be of type Function.");
 	}
 
-//	"Test if calling save on a new document the document is inserted": function (test) {
+//	"Test if drop function drop a database with specific name": function (test) {
 //		test.async(2500);
 //
 //		var mongoDB = new MongoDB(createConfig());
-//		var steps = [
 //
-//			// 1. recreate database
-//			function Save_New_Document(next) {
-//				mongoDB.save({ "name": "Galina" }, next);
+//		var steps = [
+//			function Drop(next) {
+//				mongoDB.drop();
 //			},
-//			function Assert_(next, err, savedData) {
-//				if (err) { throw err; }
-//				assert.hasValue(savedData, "Expected the saved savedData to be returned");
-//				assert.hasValue(savedData._id, "Expected a new _id property");
+//			function Assert_(next) {
+//
 //				next();
 //			}];
 //
@@ -306,6 +343,7 @@ jstest.run({
 //			test.complete(err);
 //		});
 //	}
+//
 
 });
 
