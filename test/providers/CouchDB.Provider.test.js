@@ -706,6 +706,64 @@ jstest.run({
 		assert.expectError(function () {
 			couchDB.removeAll([{}], {});
 		}, "Argument 'callback' must be of type Function");
+	},
+	"Test the removeAll function using two documents and see if it deletes both of them": function (test) {
+		test.async(9000);
+
+		var couchDB = new CouchDB(createConfig(), nano);
+		var testData = [
+			{"Hello": "World"},
+			{"Hello": "Foo"}
+		];
+
+		var steps = [
+			function Create_Test_Database(next) {
+				couchDB.recreate(next);
+			},
+
+			function Insert_Test_Data(next, err) {
+				if (err) { throw err; }
+				couchDB.saveMany(testData, next);
+			},
+
+			function Run_The_Actual_Test(next, err) {
+				if (err) { throw err; }
+				couchDB.findAll(next);
+			},
+
+			function Verify_Test_Results(next, err, data) {
+				if (err) { throw err; }
+				assert.areEqual(2, data.length, "Expected 2 items");
+				assert.areEqual(testData[0].Hello, data[0].Hello, "Expected the same data");
+				assert.areEqual(testData[1].Hello, data[1].Hello, "Expected the same data");
+				assert.isNotSame(testData, data, "Expected not the same referenced items");
+				next(data);
+			},
+
+			function Run_The_Actual_Test(next, data) {
+				couchDB.removeAll(data, next);
+			},
+
+			function Run_The_Actual_Test(next, err) {
+				if (err) { throw err; }
+				couchDB.findAll(next);
+			},
+
+			function Verify_Test_Results(next, err, data) {
+				if (err) { throw err; }
+				assert.areEqual(0, data.length, "Expected 0 items");
+				next();
+			}
+
+		];
+
+		test.steps(steps).on("complete", function (err) {
+			couchDB.drop(function (deleteErr) {
+				if (deleteErr) { return test.complete(deleteErr); }
+				test.complete(err);
+			});
+		});
+
 	}
 });
 
