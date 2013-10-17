@@ -32,7 +32,17 @@ function nanoMock(url) {
 				if (verbose) { console.log("Use database '" + database + "'"); }
 				var db = {
 					bulk: function (data, callback) {
-						_databases[database] = JSON.parse(JSON.stringify(data)).docs;
+						var docs = JSON.parse(JSON.stringify(data)).docs;
+						docs.forEach(function (doc) {
+							if (doc._id) { return; }
+							doc._id = Math.round(Math.random() * 9) + 'a04d1eded7ea3c389b5680c36049a3' + Math.round(Math.random() * 9);
+							doc._rev = '1-15f65339921e497348be384867bb940f';
+						});
+						_databases[database] = docs;
+						docs.slice(0).forEach(function (doc) {
+							if (!doc._deleted) { return; }
+							_databases[database].splice(_databases[database].indexOf(doc), 1);
+						});
 						if (verbose) { console.log("Bulk load data '" + JSON.stringify(data) + "'"); }
 						process.nextTick(function () {
 							callback(null, JSON.parse(JSON.stringify(data.docs)));
