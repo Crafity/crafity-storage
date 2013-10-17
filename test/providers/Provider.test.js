@@ -50,146 +50,72 @@ jstest.run({
 
 	"Test if the create function exists and throws a Not Implemeted exception when called": function () {
 		var provider = new Provider();
-		var expectedErr;
-
-		try {
-			provider.create(function () {
-				return false;
-			});
-		} catch (err) {
-			expectedErr = err;
-		}
-
-		assert.hasValue(expectedErr, "Expected an error");
-		assert.areEqual("Not implemented", expectedErr.message, "Expected another error message");
+		assert.expectError(function () {
+			provider.create();
+		}, "Not implemented");
 	},
 
 	"Test if the drop function exists and throws a Not Implemeted exception when called": function () {
 		var provider = new Provider();
-		var expectedErr;
+		assert.expectError(function () {
+			provider.drop();
+		}, "Not implemented");
+	},
 
-		try {
-			provider.drop(function () {
-				return false;
-			});
-		} catch (err) {
-			expectedErr = err;
-		}
-
-		assert.hasValue(expectedErr, "Expected an error");
-		assert.areEqual("Not implemented", expectedErr.message, "Expected another error message");
+	"Test if the recreate function exists and throws a Not Implemeted exception when called": function () {
+		var provider = new Provider();
+		assert.expectError(function () {
+			provider.recreate();
+		}, "Not implemented");
 	},
 
 	"Test if the connect function exists and throws a Not Implemeted exception when called": function () {
 		var provider = new Provider();
-		var expectedErr;
-
-		try {
-			provider.connect(function () {
-				return false;
-			});
-		} catch (err) {
-			expectedErr = err;
-		}
-
-		assert.hasValue(expectedErr, "Expected an error");
-		assert.areEqual("Not implemented", expectedErr.message, "Expected another error message");
+		assert.expectError(function () {
+			provider.connect();
+		}, "Not implemented");
 	},
 
 	"Test if the disconnect function exists and throws a Not Implemeted exception when called": function () {
 		var provider = new Provider();
-		var expectedErr;
-
-		try {
-			provider.disconnect(function () {
-				return false;
-			});
-		} catch (err) {
-			expectedErr = err;
-		}
-
-		assert.hasValue(expectedErr, "Expected an error");
-		assert.areEqual("Not implemented", expectedErr.message, "Expected another error message");
+		assert.expectError(function () {
+			provider.disconnect();
+		}, "Not implemented");
 	},
 
 	"Test if the dispose function exists and throws a Not Implemeted exception when called": function () {
 		var provider = new Provider();
-		var expectedErr;
-
-		try {
-			provider.dispose(function () {
-				return false;
-			});
-		} catch (err) {
-			expectedErr = err;
-		}
-
-		assert.hasValue(expectedErr, "Expected an error");
-		assert.areEqual("Not implemented", expectedErr.message, "Expected another error message");
+		assert.expectError(function () {
+			provider.dispose();
+		}, "Not implemented");
 	},
 
 	"Test if the save function exists and throws a Not Implemeted exception when called": function () {
 		var provider = new Provider();
-		var expectedErr;
-
-		try {
-			provider.save({}, function () {
-				return false;
-			});
-		} catch (err) {
-			expectedErr = err;
-		}
-
-		assert.hasValue(expectedErr, "Expected an error");
-		assert.areEqual("Not implemented", expectedErr.message, "Expected another error message");
+		assert.expectError(function () {
+			provider.save();
+		}, "Not implemented");
 	},
 
 	"Test if the remove function exists and throws a Not Implemeted exception when called": function () {
 		var provider = new Provider();
-		var expectedErr;
-
-		try {
-			provider.remove({}, function () {
-				return false;
-			});
-		} catch (err) {
-			expectedErr = err;
-		}
-
-		assert.hasValue(expectedErr, "Expected an error");
-		assert.areEqual("Not implemented", expectedErr.message, "Expected another error message");
+		assert.expectError(function () {
+			provider.remove();
+		}, "Not implemented");
 	},
 
 	"Test if the findByKey function exists and throws a Not Implemeted exception when called": function () {
 		var provider = new Provider();
-		var expectedErr;
-
-		try {
-			provider.findByKey(123, function () {
-				return false;
-			});
-		} catch (err) {
-			expectedErr = err;
-		}
-
-		assert.hasValue(expectedErr, "Expected an error");
-		assert.areEqual("Not implemented", expectedErr.message, "Expected another error message");
+		assert.expectError(function () {
+			provider.findByKey();
+		}, "Not implemented");
 	},
 
 	"Test if the findAll function exists and throws a Not Implemeted exception when called": function () {
 		var provider = new Provider();
-		var expectedErr;
-
-		try {
-			provider.findAll(function () {
-				return false;
-			});
-		} catch (err) {
-			expectedErr = err;
-		}
-
-		assert.hasValue(expectedErr, "Expected an error");
-		assert.areEqual("Not implemented", expectedErr.message, "Expected another error message");
+		assert.expectError(function () {
+			provider.findAll();
+		}, "Not implemented");
 	}
 });
 
