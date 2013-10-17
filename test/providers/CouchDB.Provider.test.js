@@ -106,7 +106,7 @@ jstest.run({
 		var couchDB = new CouchDB(config, nano);
 		assert.isInstanceOf(Provider, couchDB[PROTO_PROPERY], "Expected the Generic Provider to be the prototype");
 	},
-	
+
 	"Test the create function to see if it creates the database": function (test) {
 		test.async(1000);
 
@@ -119,7 +119,7 @@ jstest.run({
 			function Create_The_Database(next, err, result) {
 				assert.hasValue(err, "expected an error");
 				assert.areEqual("Database '" + couchDB.database + "' not found.", err.message, "expected an error message");
-				couchDB.create(next);				
+				couchDB.create(next);
 			},
 			function Verify_The_Database_Is_There(next) {
 				couchDB.findByKey(123, next);
@@ -145,7 +145,7 @@ jstest.run({
 
 		var steps = [
 			function Create_The_Database(next, err, result) {
-				couchDB.create(next);				
+				couchDB.create(next);
 			},
 			function Verify_The_Database_Is_There(next, err) {
 				if (err) { throw err; }
@@ -154,7 +154,7 @@ jstest.run({
 			function Drop_The_Database(next, err) {
 				assert.hasValue(err, "expected an error");
 				assert.areEqual("Item with key '123' does not exist", err.message, "expected an error message");
-				couchDB.drop(next);				
+				couchDB.drop(next);
 			},
 			function Test_The_Database(next, err, result) {
 				if (err) { throw err; }
@@ -166,7 +166,7 @@ jstest.run({
 				next();
 			},
 			function Drop_The_Database(next) {
-				couchDB.drop(next);				
+				couchDB.drop(next);
 			},
 			function (next, err) {
 				assert.hasValue(err, "expected an error");
@@ -177,7 +177,7 @@ jstest.run({
 
 		test.steps(steps).on("complete", test.complete);
 	},
-	
+
 	"Test if the isConnected function returns true after initialisation": function () {
 		var couchDB = new CouchDB(createConfig(), nano);
 
@@ -219,7 +219,7 @@ jstest.run({
 		});
 
 	},
-	
+
 	"Test if the findAll function checks all its arguments properly": function () {
 		var couchDB = new CouchDB(createConfig(), nano);
 
@@ -271,7 +271,7 @@ jstest.run({
 		});
 
 	},
-	
+
 	"Test if the findByKey function checks all its arguments properly": function () {
 		var couchDB = new CouchDB(createConfig(), nano);
 
@@ -375,7 +375,7 @@ jstest.run({
 		});
 
 	},
-	
+
 	"Test the findManyByKey function using multiple documents with the same key": function (test) {
 		test.async(9000);
 
@@ -425,7 +425,7 @@ jstest.run({
 			});
 		});
 	},
-	
+
 	"Test if the save function checks all its arguments properly": function () {
 		var couchDB = new CouchDB(createConfig(), nano);
 		assert.expectError(function () {
@@ -480,7 +480,7 @@ jstest.run({
 			couchDB.drop(function (deleteErr) {
 				if (deleteErr) { return test.complete(deleteErr); }
 				test.complete(err, data);
-				
+
 			});
 		});
 	},
@@ -541,7 +541,7 @@ jstest.run({
 			});
 		});
 	},
-	
+
 	"Test if the saveMany function checks all its arguments properly": function () {
 		var couchDB = new CouchDB(createConfig(), nano);
 		assert.expectError(function () {
@@ -599,7 +599,7 @@ jstest.run({
 			});
 		});
 	},
-	
+
 	"Test if the remove function checks all its arguments properly": function () {
 		var couchDB = new CouchDB(createConfig(), nano);
 		assert.expectError(function () {
@@ -704,7 +704,9 @@ jstest.run({
 			couchDB.removeAll([], {});
 		}, "Argument 'data' must contain at least one item");
 		assert.expectError(function () {
-			couchDB.removeAll([{}], {});
+			couchDB.removeAll([
+				{}
+			], {});
 		}, "Argument 'callback' must be of type Function");
 	},
 	"Test the removeAll function using two documents and see if it deletes both of them": function (test) {
