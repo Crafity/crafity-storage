@@ -692,6 +692,20 @@ jstest.run({
 
 	},
 
+	"Test if the removeAll function checks all its arguments properly": function () {
+		var couchDB = new CouchDB(createConfig(), nano);
+		assert.expectError(function () {
+			couchDB.removeAll();
+		}, "Argument 'data' is required");
+		assert.expectError(function () {
+			couchDB.removeAll({});
+		}, "Argument 'data' is missing a '_id' property");
+		//assert.expectError(function () {
+		//	couchDB.removeAll({ _id: 123 });
+		//}, "Argument 'data' is missing a '_rev' property");
+		//assert.expectError(function () {
+		//	couchDB.removeAll({_id: 123, _rev: 123}, {});
+		//}, "Argument 'callback' must be of type Function");
 	}
 });
 
