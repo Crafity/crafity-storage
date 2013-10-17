@@ -699,13 +699,13 @@ jstest.run({
 		}, "Argument 'data' is required");
 		assert.expectError(function () {
 			couchDB.removeAll({});
-		}, "Argument 'data' is missing a '_id' property");
-		//assert.expectError(function () {
-		//	couchDB.removeAll({ _id: 123 });
-		//}, "Argument 'data' is missing a '_rev' property");
-		//assert.expectError(function () {
-		//	couchDB.removeAll({_id: 123, _rev: 123}, {});
-		//}, "Argument 'callback' must be of type Function");
+		}, "Argument 'data' must be an Array");
+		assert.expectError(function () {
+			couchDB.removeAll([], {});
+		}, "Argument 'data' must contain at least one item");
+		assert.expectError(function () {
+			couchDB.removeAll([{}], {});
+		}, "Argument 'callback' must be of type Function");
 	}
 });
 
