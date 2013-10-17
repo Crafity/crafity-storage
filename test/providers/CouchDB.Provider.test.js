@@ -542,8 +542,62 @@ jstest.run({
 		});
 	},
 	
-	"Test the saveMany function and see if it stores multiple documents at once": function () {
-		return false;
+	"Test if the saveMany function checks all its arguments properly": function () {
+		var couchDB = new CouchDB(createConfig(), nano);
+		assert.expectError(function () {
+			couchDB.saveMany();
+		}, "Argument 'data' is required");
+		assert.expectError(function () {
+			couchDB.saveMany({});
+		}, "Argument 'data' must be an Array");
+		assert.expectError(function () {
+			couchDB.saveMany([], {});
+		}, "Argument 'callback' must be of type Function");
+	},
+	"Test the saveMany function and see if it stores multiple documents at once": function (test) {
+		test.async(9000);
+
+		var couchDB = new CouchDB(createConfig(), nano);
+		var testData = [
+			{"Hello": "World"},
+			{"Hello": "Foo"}
+		];
+
+		var steps = [
+			function Create_Test_Database(next) {
+				couchDB.recreate(next);
+			},
+
+			function Run_The_Actual_Test(next, err) {
+				if (err) { throw err; }
+				couchDB.saveMany(testData, next);
+			},
+
+			function Get_All_The_Test_Data(next, err) {
+				if (err) { throw err; }
+				couchDB.findAll(next);
+			},
+
+			function Verify_Test_Results(next, err, data) {
+				if (err) { throw err; }
+				assert.areEqual(2, data.length, "Expected 2 items");
+				assert.hasValue(data[0]._id, "Expected a _id value");
+				assert.hasValue(data[0]._rev, "Expected a _rev value");
+				assert.hasValue(data[1]._id, "Expected a _id value");
+				assert.hasValue(data[1]._rev, "Expected a _rev value");
+				assert.areEqual(testData[0].Hello, data[0].Hello, "Expected the same data");
+				assert.areEqual(testData[1].Hello, data[1].Hello, "Expected the same data");
+				assert.isNotSame(testData, data, "Expected not the same referenced items");
+				next();
+			}
+		];
+
+		test.steps(steps).on("complete", function (err) {
+			couchDB.drop(function (deleteErr) {
+				if (deleteErr) { return test.complete(deleteErr); }
+				test.complete(err);
+			});
+		});
 	},
 	
 	"Test if the remove function checks all its arguments properly": function () {
@@ -635,6 +689,8 @@ jstest.run({
 				test.complete(err);
 			});
 		});
+
+	},
 
 	}
 });
