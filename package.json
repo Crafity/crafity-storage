@@ -1,64 +1,64 @@
 {
-  "name": "crafity-storage",
-  "description": "Generic storage provider. Single interface or abstraction for different databases.",
-  "version": "0.1.3",
-  "author": "Galina Slavova <galina@crafity.com> and Bart Riemens <briemens@crafity.com>",
-  "homepage": "https://github.com/Crafity/crafity-storage/wiki",
-  "keywords": [ "crafity", "storage", "database", "provider", "couchdb", "MongoDB", "mongoose", "nano", "couch-client", "persistence", "redis", "filesystem" ],
-  "maintainers": [
-    {
-      "name": "Bart Riemens",
-      "email": "briemens@crafity.com",
-      "web": "http://crafity.com/about/bart"
-    },
-    {
-      "name": "Galina Slavova",
-      "email": "galina@crafity.com",
-      "web": "http://crafity.com/about/galina"
-    }
-  ],
-  "contributors": [
-    {
-      "name": "Bart Riemens",
-      "email": "briemens@crafity.com",
-      "web": "http://crafity.com/about/bart"
-    },
-    {
-      "name": "Galina Slavova",
-      "email": "galina@crafity.com",
-      "web": "http://crafity.com/about/galina"
-    }
-  ],
-  "main": "main.js",
-  "directories": {
-    "test": "test"
-  },
-  "licenses": [
-    {
-      "type": "The MIT License",
-      "url": "https://github.com/Crafity/crafity-storage/blob/master/LICENSE"
-    }
-  ],
-  "bugs": "https://github.com/Crafity/crafity-storage/issues",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/Crafity/crafity-storage.git"
-  },
-  "dependencies": {
-    "couch-client": "0.0.4",
-    "nano": "3.0.9",
-    "mongoose": "2.7.1",
-    "node-uuid": "1.4.0",
-    "redis": "~0.8.3",
-    "crafity-core": "~0.1.0",
-    "crafity-filesystem": "~0.1.0",
-    "crafity-jstest": "~0.1.0"
-  },
-  "engines": {
-    "node": "*"
-  },
-  "scripts": {
-    "prepublish": "npm prune",
-    "test": "scripts/npm-test.sh"
-  }
+	"name": "crafity-storage",
+	"description": "Generic storage provider. Single interface or abstraction for different databases.",
+	"version": "0.1.3",
+	"author": "Galina Slavova <galina@crafity.com> and Bart Riemens <briemens@crafity.com>",
+	"homepage": "https://github.com/Crafity/crafity-storage/wiki",
+	"keywords": [ "crafity", "storage", "database", "provider", "couchdb", "MongoDB", "mongoose", "nano", "couch-client", "persistence", "redis", "filesystem" ],
+	"maintainers": [
+		{
+			"name": "Bart Riemens",
+			"email": "briemens@crafity.com",
+			"web": "http://crafity.com/about/bart"
+		},
+		{
+			"name": "Galina Slavova",
+			"email": "galina@crafity.com",
+			"web": "http://crafity.com/about/galina"
+		}
+	],
+	"contributors": [
+		{
+			"name": "Bart Riemens",
+			"email": "briemens@crafity.com",
+			"web": "http://crafity.com/about/bart"
+		},
+		{
+			"name": "Galina Slavova",
+			"email": "galina@crafity.com",
+			"web": "http://crafity.com/about/galina"
+		}
+	],
+	"main": "main.js",
+	"directories": {
+		"test": "test"
+	},
+	"licenses": [
+		{
+			"type": "The MIT License",
+			"url": "https://github.com/Crafity/crafity-storage/blob/master/LICENSE"
+		}
+	],
+	"bugs": "https://github.com/Crafity/crafity-storage/issues",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Crafity/crafity-storage.git"
+	},
+	"dependencies": {
+		"couch-client": "0.0.4",
+		"nano": "3.0.9",
+		"mongoose": "2.7.1",
+		"node-uuid": "1.4.0",
+		"redis": "~0.8.3",
+		"crafity-core": "~0.1.0",
+		"crafity-filesystem": "~0.1.0",
+		"crafity-jstest": "~0.1.0"
+	},
+	"engines": {
+		"node": "*"
+	},
+	"scripts": {
+		"prepublish": "npm prune",
+		"test": "scripts/npm-test.sh"
+	}
 }
