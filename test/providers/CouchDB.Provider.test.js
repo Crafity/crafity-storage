@@ -54,8 +54,8 @@ var config = {
 	name: "Test",
 	url: "http://test:test@localhost:5984",
 	database: "crafity-storage",
-	design: "design",
-	view: "view"
+	design: "testDesign",
+	view: "testView"
 };
 
 /**
@@ -98,8 +98,8 @@ jstest.run({
 		assert.areEqual("Test", couchDB.name, "Expected another provider name");
 		assert.areEqual("http://test:test@localhost:5984/", couchDB.url, "Expected another provider name");
 		assert.areEqual("crafity-storage", couchDB.database, "Expected another provider name");
-		assert.areEqual("design", couchDB.design, "Expected another provider name");
-		assert.areEqual("view", couchDB.view, "Expected another provider name");
+		assert.areEqual("testDesign", couchDB.design, "Expected another provider name");
+		assert.areEqual("testView", couchDB.view, "Expected another provider name");
 		assert.isSame(config, couchDB.config, "Expected exactly the same configuration");
 	},
 	"Instantiate the CouchDB provider and check if it has the Generic Provider as its prototype": function () {
