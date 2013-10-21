@@ -114,7 +114,7 @@ jstest.run({
 
 		var steps = [
 			function Proof_There_Is_No_Database(next) {
-				couchDB.findByKey(123, next);
+				couchDB.findById("123", next);
 			},
 			function Create_The_Database(next, err, result) {
 				assert.hasValue(err, "expected an error");
@@ -122,11 +122,11 @@ jstest.run({
 				couchDB.create(next);
 			},
 			function Verify_The_Database_Is_There(next) {
-				couchDB.findByKey(123, next);
+				couchDB.findById("123", next);
 			},
 			function Assert(next, err) {
 				assert.hasValue(err, "expected an error");
-				assert.areEqual("Item with key '123' does not exist", err.message, "expected an error message");
+				assert.areEqual("Item with id '123' does not exist", err.message, "expected an error message");
 				next();
 			}
 		];
@@ -149,16 +149,16 @@ jstest.run({
 			},
 			function Verify_The_Database_Is_There(next, err) {
 				if (err) { throw err; }
-				couchDB.findByKey(123, next);
+				couchDB.findById("123", next);
 			},
 			function Drop_The_Database(next, err) {
 				assert.hasValue(err, "expected an error");
-				assert.areEqual("Item with key '123' does not exist", err.message, "expected an error message");
+				assert.areEqual("Item with id '123' does not exist", err.message, "expected an error message");
 				couchDB.drop(next);
 			},
 			function Test_The_Database(next, err, result) {
 				if (err) { throw err; }
-				couchDB.findByKey(123, next);
+				couchDB.findById("123", next);
 			},
 			function Verify_Outcome(next, err) {
 				assert.hasValue(err, "expected an error");
@@ -272,6 +272,215 @@ jstest.run({
 
 	},
 
+	"Test if the findById function checks all its arguments properly": function () {
+		var couchDB = new CouchDB(createConfig(), nano);
+
+		assert.expectError(function () {
+			// The findAll function expects a key as first argument.
+			//  Anything else than a number of string should throw an error.
+			couchDB.findById();
+		}, "Argument 'id' is required");
+
+		assert.expectError(function () {
+			// The findAll function expects a key as first argument.
+			//  Anything else than a number of string should throw an error.
+			couchDB.findById("id", 123, function () {
+				return false;
+			});
+		}, "Argument 'rev' must be a string");
+
+		assert.expectError(function () {
+			// The findAll function expects a key as first argument.
+			//  Anything else than a number of string should throw an error.
+			couchDB.findById(function () {
+				return false;
+			});
+		}, "Argument 'id' must be a string");
+
+		assert.expectError(function () {
+			// The findAll function expects a callback as second arguments.
+			//  Anything else should throw an error.
+			couchDB.findById("id", "Nonsense");
+		}, "Argument 'callback' must be of type Function");
+	},
+	"Test the findById function using two documents and see if it returns the correct one": function (test) {
+		test.async(9000);
+
+		var couchDB = new CouchDB(createConfig(), nano);
+		var testData = [
+			{value: "123", "Hello": "World"},
+			{value: "456", "Hello": "Foo"}
+		];
+
+		var steps = [
+			function Create_Test_Database(next) {
+				couchDB.recreate(next);
+			},
+
+			function Insert_Test_Data(next, err) {
+				if (err) { throw err; }
+				couchDB.saveMany(testData, next);
+			},
+
+			function Run_The_Actual_Test(next, err, insertedData) {
+				if (err) { throw err; }
+				couchDB.findById(insertedData[1]._id, next);
+			},
+
+			function Verify_Test_Results(next, err, data) {
+				if (err) { throw err; }
+				assert.hasValue(data, "Expected data to be returned");
+				assert.areEqual(testData[1].Hello, data.Hello, "Expected the same data");
+				assert.isNotSame(testData[1], data, "Expected not the same referenced items");
+				next();
+			}
+		];
+
+		test.steps(steps).on("complete", function (err) {
+			couchDB.drop(function (deleteErr) {
+				if (deleteErr) { return test.complete(deleteErr); }
+				test.complete(err);
+			});
+		});
+
+	},
+	"Test the findById function and see if it returns the correct version if asked explicitly": function (test) {
+		test.async(9000);
+
+		var couchDB = new CouchDB(createConfig(), nano);
+		var testData = [
+			{value: "123", "Hello": "World"},
+			{value: "456", "Hello": "Foo"}
+		];
+		var previousRev, previousId;
+
+		var steps = [
+			function Create_Test_Database(next) {
+				couchDB.recreate(next);
+			},
+
+			function Insert_Test_Data(next, err) {
+				if (err) { throw err; }
+				couchDB.saveMany(testData, next);
+			},
+
+			function Create_A_Second_Version_Of_A_Document(next, err, insertedData) {
+				if (err) { throw err; }
+				var changedDoc = insertedData[1];
+				previousRev = changedDoc._rev;
+				previousId = changedDoc._id;
+				assert.hasValue(previousRev, "Expected a previous revision");
+				changedDoc.value = "789";
+				couchDB.save(changedDoc, function (err) {
+					next(err, insertedData);
+				});
+			},
+
+			function Run_The_Actual_Test_By_Using_The_Old_Version(next, err, insertedData) {
+				if (err) { throw err; }
+				couchDB.findById(insertedData[1]._id, previousRev, next);
+			},
+
+			function Verify_Test_Results(next, err, data) {
+				if (err) { throw err; }
+				assert.hasValue(data, "Expected data to be returned");
+				assert.areEqual(testData[1].Hello, data.Hello, "Expected the same data");
+				assert.areEqual(previousId, data._id, "Expected the revision");
+				assert.areEqual(previousRev, data._rev, "Expected the revision");
+				assert.isNotSame(testData[1], data, "Expected not the same referenced items");
+				next();
+			}
+		];
+
+		test.steps(steps).on("complete", function (err) {
+			couchDB.drop(function (deleteErr) {
+				if (deleteErr) { return test.complete(deleteErr); }
+				test.complete(err);
+			});
+		});
+
+	},
+	"Test the findById function using a non-exising revision": function (test) {
+		test.async(9000);
+
+		var couchDB = new CouchDB(createConfig(), nano);
+		var testData = [
+			{value: "123", "Hello": "World"},
+			{value: "456", "Hello": "Foo"}
+		];
+		var previousId, unknownRev = "2-2677b6e95975c6c52381322c00cc4c8e";
+
+		var steps = [
+			function Create_Test_Database(next) {
+				couchDB.recreate(next);
+			},
+
+			function Insert_Test_Data(next, err) {
+				if (err) { throw err; }
+				couchDB.saveMany(testData, next);
+			},
+
+			function Run_The_Actual_Test_By_Using_The_Old_Version(next, err, insertedData) {
+				if (err) { throw err; }
+				previousId = insertedData[1]._id;
+				couchDB.findById(insertedData[1]._id, unknownRev, next);
+			},
+
+			function Verify_Test_Results(next, err, data) {
+				assert.hasValue(err, "Expected an error");
+				assert.areEqual("Item with id '" + previousId + "' and rev '" + unknownRev + "' does not exist", err.message, "Expected another error message");
+				next();
+			}
+		];
+
+		test.steps(steps).on("complete", function (err) {
+			couchDB.drop(function (deleteErr) {
+				if (deleteErr) { return test.complete(deleteErr); }
+				test.complete(err);
+			});
+		});
+
+	},
+	"Test the findById function using a non-existing id": function (test) {
+		test.async(9000);
+
+		var couchDB = new CouchDB(createConfig(), nano);
+		var testData = [
+			{_id: "123", "Hello": "World"},
+			{_id: "456", "Hello": "Foo"}
+		];
+
+		var steps = [
+			function Create_Test_Database(next) {
+				couchDB.recreate(next);
+			},
+
+			function Insert_Test_Data(next, err) {
+				if (err) { throw err; }
+				couchDB.saveMany(testData, next);
+			},
+
+			function Run_The_Actual_Test(next, err) {
+				if (err) { throw err; }
+				couchDB.findById("789", next);
+			},
+
+			function Verify_Test_Results(next, err, data) {
+				assert.hasValue(err, "Expected an error");
+				assert.areEqual("Item with id '789' does not exist", err.message, "Expected the same data");
+				next();
+			}
+		];
+
+		test.steps(steps).on("complete", function (err) {
+			couchDB.drop(function (deleteErr) {
+				if (deleteErr) { return test.complete(deleteErr); }
+				test.complete(err);
+			});
+		});
+
+	},
+
 	"Test if the findByKey function checks all its arguments properly": function () {
 		var couchDB = new CouchDB(createConfig(), nano);
 
@@ -282,17 +491,9 @@ jstest.run({
 		}, "Argument 'key' is required");
 
 		assert.expectError(function () {
-			// The findAll function expects a key as first argument.
-			//  Anything else than a number of string should throw an error.
-			couchDB.findByKey(function () {
-				return false;
-			});
-		}, "Argument 'key' must be a string or number");
-
-		assert.expectError(function () {
 			// The findAll function expects a callback as second arguments.
 			//  Anything else should throw an error.
-			couchDB.findByKey("Key", "Nonsense");
+			couchDB.findByKey("id", "Nonsense");
 		}, "Argument 'callback' must be of type Function");
 	},
 	"Test the findByKey function using two documents and see if it returns the correct one": function (test) {
@@ -300,8 +501,17 @@ jstest.run({
 
 		var couchDB = new CouchDB(createConfig(), nano);
 		var testData = [
-			{_id: "123", "Hello": "World"},
-			{_id: "456", "Hello": "Foo"}
+			{value: "123", "Hello": "World"},
+			{value: "456", "Hello": "Foo"},
+			{
+				"_id": "_design/testDesign",
+				"language": "javascript",
+				"views": {
+					"testView": {
+						"map": "function(doc) {\n  emit(doc.value, doc);\n}"
+					}
+				}
+			}
 		];
 
 		var steps = [
@@ -336,13 +546,23 @@ jstest.run({
 		});
 
 	},
-	"Test the findByKey function using a non-existing key": function (test) {
+	"Test the findByKey function using two documents and see if it throws an error when both are returned": function (test) {
 		test.async(9000);
 
-		var couchDB = new CouchDB(createConfig(), nano);
+		var config = createConfig();
+		var couchDB = new CouchDB(config, nano);
 		var testData = [
-			{_id: "123", "Hello": "World"},
-			{_id: "456", "Hello": "Foo"}
+			{
+				"_id": "_design/testDesign",
+				"language": "javascript",
+				"views": {
+					"testView": {
+						"map": "function(doc) {\n  emit(doc.value, doc);\n}"
+					}
+				}
+			},
+			{_id: "123", "Hello": "World", value: "xyz" },
+			{_id: "456", "Hello": "Foo", value: "xyz"}
 		];
 
 		var steps = [
@@ -357,12 +577,15 @@ jstest.run({
 
 			function Run_The_Actual_Test(next, err) {
 				if (err) { throw err; }
-				couchDB.findByKey("789", next);
+				config.design = "testDesign";
+				config.view = "testView";
+				couchDB = new CouchDB(config, nano);
+				couchDB.findByKey("xyz", next);
 			},
 
 			function Verify_Test_Results(next, err, data) {
 				assert.hasValue(err, "Expected an error");
-				assert.areEqual("Item with key '789' does not exist", err.message, "Expected the same data");
+				assert.areEqual("Found multiple items with key 'xyz'", err.message, "Expected another error message");
 				next();
 			}
 		];
@@ -375,7 +598,70 @@ jstest.run({
 		});
 
 	},
+	"Test the findByKey function using a non-existing key": function (test) {
+		test.async(9000);
 
+		var couchDB = new CouchDB(createConfig(), nano);
+		var testData = [
+			{value: "123", "Hello": "World"},
+			{value: "456", "Hello": "Foo"},
+			{value: "123", "Hello": "bar"},
+			{
+				"_id": "_design/testDesign",
+				"language": "javascript",
+				"views": {
+					"testView": {
+						"map": "function(doc) {\n  emit(doc.value, doc);\n}"
+					}
+				}
+			}
+		];
+
+		var steps = [
+			function Create_Test_Database(next) {
+				couchDB.recreate(next);
+			},
+
+			function Insert_Test_Data(next, err) {
+				if (err) { throw err; }
+				couchDB.saveMany(testData, next);
+			},
+
+			function Run_The_Actual_Test(next, err) {
+				if (err) { throw err; }
+				couchDB.findByKey("999", next);
+			},
+
+			function Verify_Test_Results(next, err, data) {
+				assert.hasValue(err, "Expected an error");
+				assert.areEqual("Item with key '999' does not exist", err.message, "Expected another error message");
+				next();
+			}
+		];
+
+		test.steps(steps).on("complete", function (err) {
+			couchDB.drop(function (deleteErr) {
+				if (deleteErr) { return test.complete(deleteErr); }
+				return test.complete(err);
+			});
+		});
+
+	},
+
+	"Test if the findManyByKey function checks all its arguments properly": function () {
+		var couchDB = new CouchDB(createConfig(), nano);
+
+		assert.expectError(function () {
+			// The findAll function expects a key as first argument.
+			couchDB.findManyByKey();
+		}, "Argument 'key' is required");
+
+		assert.expectError(function () {
+			// The findAll function expects a callback as second arguments.
+			//  Anything else should throw an error.
+			couchDB.findManyByKey("Key", "Nonsense");
+		}, "Argument 'callback' must be of type Function");
+	},
 	"Test the findManyByKey function using multiple documents with the same key": function (test) {
 		test.async(9000);
 
@@ -411,9 +697,56 @@ jstest.run({
 				couchDB.findManyByKey(123, next);
 			},
 			function (next, err, data) {
-				if (err) { throw err; }
 				assert.hasValue(data, "Expected data to be returned");
-				assert.areEqual(2, data.length, "Expected the two documents");
+				assert.areEqual(2, data.length, "Expected 2 documents");
+				next();
+			}
+		];
+
+		test.steps(steps).on('complete', function (err) {
+			couchDB.drop(function (deleteErr) {
+				if (deleteErr) { return test.complete(deleteErr); }
+				test.complete(err);
+			});
+		});
+	},
+	"Test the findManyByKey function using a non-existing key": function (test) {
+		test.async(9000);
+
+		var couchDB = new CouchDB(createConfig(), nano);
+
+		var steps = [
+			function (next) {
+				couchDB.recreate(function () {
+					couchDB.save({
+						"_id": "_design/testDesign",
+						"language": "javascript",
+						"views": {
+							"testView": {
+								"map": "function(doc) {\n  emit(doc.value, doc);\n}"
+							}
+						}
+					}, function () {
+						couchDB.save({value: 123}, function () {
+							couchDB.save({value: 123}, function () {
+								couchDB.save({value: 456}, function () {
+									var config = couchDB.config;
+									config.design = "testDesign";
+									config.view = "testView";
+									couchDB = new CouchDB(config, nano);
+									next();
+								});
+							});
+						});
+					});
+				});
+			},
+			function (next) {
+				couchDB.findManyByKey(999, next);
+			},
+			function (next, err, data) {
+				assert.hasValue(data, "Expected data");
+				assert.areEqual(0, data.length, "Expected 0 documents");
 				next();
 			}
 		];
