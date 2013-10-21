@@ -107,6 +107,48 @@ jstest.run({
 		assert.isInstanceOf(Provider, couchDB[PROTO_PROPERY], "Expected the Generic Provider to be the prototype");
 	},
 
+	"Test CouchDB provider using a non existing server": function (test) {
+		test.async(1000);
+
+		var config = createConfig();
+		config.url = "http://nonexistingserver";
+		var couchDB = new CouchDB(config, nano);
+
+		couchDB.findAll(function (err) {
+			assert.hasValue(err, "Expected an error");
+			assert.areEqual("Server 'http://nonexistingserver/' not found.", err.message, "Expected another error message");
+			couchDB.recreate(function (err) {
+				test.complete();
+			});
+		});
+	},
+	"Test CouchDB provider using a non existing database": function (test) {
+		test.async(1000);
+
+		var config = createConfig();
+		config.database = "whatdatabase";
+		var couchDB = new CouchDB(config, nano);
+
+		couchDB.findAll(function (err) {
+			assert.hasValue(err, "Expected an error");
+			assert.areEqual("Database 'whatdatabase' not found.", err.message, "Expected another error message");
+			test.complete();
+		});
+	},
+	"Test CouchDB provider using a non existing user and password": function (test) {
+		test.async(1000);
+
+		var config = createConfig();
+		config.url = "http://who:what@localhost:5984";
+		var couchDB = new CouchDB(config, nano);
+
+		couchDB.findAll(function (err) {
+			assert.hasValue(err, "Expected an error");
+			assert.areEqual("Name or password is incorrect.", err.message, "Expected another error message");
+			test.complete();
+		});
+	},
+
 	"Test the create function to see if it creates the database": function (test) {
 		test.async(1000);
 
