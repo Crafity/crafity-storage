@@ -61,9 +61,11 @@ function nanoMock(url) {
 						if (isServerUnavailable(callback)) { return; }
 						if (isDatabaseUnavailable(callback)) { return; }
 						var docs = JSON.parse(JSON.stringify(data)).docs;
+						var randomInt = function () { return Math.round(Math.random() * 9); };
+
 						docs.forEach(function (doc) {
 							if (doc._id) { return; }
-							doc._id = Math.round(Math.random() * 9) + 'a04d1eded7ea3c389b5680c36049a3' + Math.round(Math.random() * 9);
+							doc._id = randomInt() + 'a04d1eded' + randomInt() + 'ea3c389b5680c36049a' + randomInt() + randomInt();
 							doc._rev = '1-15f65339921e497348be384867bb940f';
 						});
 						_databases[database] = docs;
