@@ -1067,24 +1067,24 @@ jstest.run({
 
 	},
 
-	"Test if the removeAll function checks all its arguments properly": function () {
+	"Test if the removeMany function checks all its arguments properly": function () {
 		var couchDB = new CouchDB(createConfig(), nano);
 		assert.expectError(function () {
-			couchDB.removeAll();
+			couchDB.removeMany();
 		}, "Argument 'data' is required");
 		assert.expectError(function () {
-			couchDB.removeAll({});
+			couchDB.removeMany({});
 		}, "Argument 'data' must be an Array");
 		assert.expectError(function () {
-			couchDB.removeAll([], {});
+			couchDB.removeMany([], {});
 		}, "Argument 'data' must contain at least one item");
 		assert.expectError(function () {
-			couchDB.removeAll([
+			couchDB.removeMany([
 				{}
 			], {});
 		}, "Argument 'callback' must be of type Function");
 	},
-	"Test the removeAll function using two documents and see if it deletes both of them": function (test) {
+	"Test the removeMany function using two documents and see if it deletes both of them": function (test) {
 		test.async(9000);
 
 		var couchDB = new CouchDB(createConfig(), nano);
@@ -1118,7 +1118,7 @@ jstest.run({
 			},
 
 			function Run_The_Actual_Test(next, data) {
-				couchDB.removeAll(data, next);
+				couchDB.removeMany(data, next);
 			},
 
 			function Run_The_Actual_Test(next, err) {
