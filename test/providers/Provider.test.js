@@ -139,6 +139,13 @@ jstest.run({
 		}, "Not implemented");
 	},
 
+	"Test if the findById function exists and throws a Not Implemeted exception when called": function () {
+		var provider = new Provider();
+		assert.expectError(function () {
+			provider.findById();
+		}, "Not implemented");
+	},
+	
 	"Test if the findAll function exists and throws a Not Implemeted exception when called": function () {
 		var provider = new Provider();
 		assert.expectError(function () {
