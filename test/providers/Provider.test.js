@@ -104,6 +104,13 @@ jstest.run({
 		}, "Not implemented");
 	},
 
+	"Test if the saveMany function exists and throws a Not Implemeted exception when called": function () {
+		var provider = new Provider();
+		assert.expectError(function () {
+			provider.saveMany();
+		}, "Not implemented");
+	},
+	
 	"Test if the remove function exists and throws a Not Implemeted exception when called": function () {
 		var provider = new Provider();
 		assert.expectError(function () {
