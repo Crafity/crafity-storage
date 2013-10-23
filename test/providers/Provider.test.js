@@ -132,6 +132,13 @@ jstest.run({
 		}, "Not implemented");
 	},
 
+	"Test if the findManyByKey function exists and throws a Not Implemeted exception when called": function () {
+		var provider = new Provider();
+		assert.expectError(function () {
+			provider.findManyByKey();
+		}, "Not implemented");
+	},
+
 	"Test if the findAll function exists and throws a Not Implemeted exception when called": function () {
 		var provider = new Provider();
 		assert.expectError(function () {
