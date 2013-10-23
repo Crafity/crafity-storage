@@ -118,6 +118,13 @@ jstest.run({
 		}, "Not implemented");
 	},
 
+	"Test if the removeMany function exists and throws a Not Implemeted exception when called": function () {
+		var provider = new Provider();
+		assert.expectError(function () {
+			provider.removeMany();
+		}, "Not implemented");
+	},
+	
 	"Test if the findByKey function exists and throws a Not Implemeted exception when called": function () {
 		var provider = new Provider();
 		assert.expectError(function () {
