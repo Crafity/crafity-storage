@@ -595,7 +595,7 @@ jstest.run({
 		assert.expectError(function () {
 			mongoDB.findAll("nocallback");
 		}, mongoDB.callback_not_a_function_err);
-	},
+	}
 });
 
 /**
