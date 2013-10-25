@@ -19,7 +19,7 @@ var assert = jstest.assert;
 var db = require("./data/mongo.database");
 
 /* The main code to verify */
-var MongoDB = require('../../lib/providers/mongoDB.Provider');
+var MongoDB = require('../../lib/providers/MongoDB.Provider');
 
 /* The base provider is load to verify the prototype chain */
 var Provider = require('../../lib/providers/Provider');
@@ -30,9 +30,14 @@ var PROTO_PROPERY = "__proto__";
 /* A default configuration used by most of the tests */
 var config = {
 	"name": "Test",
-	"url": "mongodb://localhost/crafity-test",
+	"url": "mongodb://localhost:27017/crafity-test",
 	"collection": "tests"
 };
+
+var expected_no_error = "Expected the error to be null of undefined.";
+var expected_error = "Expected error to have a value.";
+var expected_connection = "Expected open connection.";
+var expected_no_connection = "Expected the connection to be closed.";
 
 /**
  * Create a new configuration with a random database name
@@ -42,10 +47,6 @@ function createConfig() {
 	var testConfig = JSON.parse(JSON.stringify(config));
 	testConfig.url += Math.floor(Math.random() * 100000).toString();
 	return testConfig;
-}
-
-function createDatabase(config, callback) {
-	db.create(config, callback);
 }
 
 /**
@@ -73,11 +74,11 @@ jstest.run({
 		mongoDB = new MongoDB(config);
 
 		assert.areEqual("MongoDB Provider", mongoDB.type, "Expected another provider name");
-		assert.areEqual("mongodb://localhost/crafity-test", mongoDB.url, "Expected another database name");
+		assert.areEqual("mongodb://localhost:27017/crafity-test", mongoDB.url, "Expected another database name");
 		assert.areEqual("Test", mongoDB.name, "Expected another name");
 		assert.areEqual("tests", mongoDB.collection, "Expected another collection name");
 		assert.isSame(config, mongoDB.config, "Expected exactly the same configuration");
-		assert.hasValue(mongoDB.schema, "Expected schema to exist");
+//		assert.hasValue(mongoDB.schema, "Expected schema to exist");
 	},
 
 	"Instantiate the MongoDB provider and check if it has the Generic Provider as its prototype": function () {
@@ -91,69 +92,61 @@ jstest.run({
 		assert.isFalse(mongoDB.isConnected(), "Expected the connection to be closed.");
 	},
 
-	"Test if the connect function checks all its arguments properly": function () {
+	"Test if the CONNECT function checks all its arguments properly": function () {
 		var mongoDB = new MongoDB(createConfig());
 
-		// arrange
 		assert.expectError(function () {
-			mongoDB.connect("Missing callback argument.");
-		}, "Argument 'callback' must be of type Function");
-
+			mongoDB.connect();
+		}, mongoDB.missing_callback_err);
 		assert.expectError(function () {
 			mongoDB.connect("other");
-		}, "Argument 'callback' must be of type Function");
-
+		}, mongoDB.callback_not_a_function_err);
 	},
 
-	"Test if connect provides a legitimate connection": function (test) {
-		test.async(1000);
+	"Test if CONNECT provides a legitimate connection": function (test) {
+		test.async(900);
 
 		var mongoDB = new MongoDB(createConfig());
 
-		assert.isFalse(mongoDB.isConnected(), "Expected the connection to be closed.");
+		var steps = [
+			function Connect_To_Database(next) {
+				assert.isFalse(mongoDB.isConnected(), "Expected the connection to be closed.");
+				mongoDB.connect(next);
+			},
+			function Assert_Connection_Is_Alive(next, err) {
+				assert.hasNoValue(err, "Expected error to be null or undefined.");
+				assert.isTrue(mongoDB.isConnected(), "Expected the connection to be opened.");
 
-		mongoDB.connect(function (err, connection) {
-			if (err) {
-				console.log("err", err);
+				next();
 			}
-			assert.hasNoValue(err, "Expected error to be null or undefined.");
-			assert.hasValue(connection, "Expected the connection to be defined.");
-			assert.isTrue(mongoDB.isConnected(), "Expected the connection to be opened.");
+		];
 
+		test.steps(steps).on("complete", function (err) {
 			mongoDB.disconnect(function () {
 				test.complete(err);
 			});
 		});
 	},
 
-	"Test if the connect function returns a valid connection after calling it twice": function (test) {
-		test.async(3000);
+	"Test if the CONNECT function returns a valid connection after calling it twice": function (test) {
+		test.async(1000);
 
 		var mongoDB = new MongoDB(createConfig());
 
 		var steps = [
 			function Connect_First_Time(next) {
+				assert.isFalse(mongoDB.isConnected(), expected_no_connection);
 				mongoDB.connect(next);
 			},
-			function Connect_Second_Time_And_Assert_Conneciton_Exists(next, prevErr, connection) {
-				if (prevErr) {
-					console.log("err", prevErr);
-				}
-
-				assert.hasNoValue(prevErr, "Expected error to be null or undefined.");
-				assert.hasValue(connection, "Expected the connection to be defined.");
-				assert.isTrue(mongoDB.isConnected(), "Expected the connection to be opened.");
+			function Connect_Second_Time_And_Assert_Conneciton_Exists(next, err) {
+				assert.hasNoValue(err, expected_no_error);
+				assert.isTrue(mongoDB.isConnected(), expected_connection);
 
 				mongoDB.connect(next);
 			},
-			function Assert_Connection_Exists(next, prevErr, connection) {
-				if (prevErr) {
-					console.log("prevErr", prevErr);
-				}
-
-				assert.hasNoValue(prevErr, "Expected error to be null or undefined.");
-				assert.hasValue(connection, "Expected the connection to be defined.");
-				assert.isTrue(mongoDB.isConnected(), "Expected the connection to be opened.");
+			function Assert_Connection_Exists(next, err) {
+				assert.hasNoValue(err, expected_no_error);
+				assert.isTrue(mongoDB.isConnected(), expected_connection);
 
 				next();
 			}
@@ -167,27 +160,19 @@ jstest.run({
 
 	},
 
-	"Test if the disconnect function checks all its arguments properly": function (test) {
-		test.async(3000);
-
+	"Test if the DISCONNECT function checks all its arguments properly": function () {
 		var mongoDB = new MongoDB(createConfig());
 
-		var steps = [
-			function Disconnect(next) {
-				mongoDB.disconnect(next);
-			},
-			function Assert_Error_Occured(next, err) {
-				assert.hasValue(err, "Expected to throw an error.");
-				next();
-			}];
-
-		test.steps(steps).on("complete", function (err) {
-			test.complete(err);
-		});
+		assert.expectError(function () {
+			mongoDB.disconnect();
+		}, mongoDB.missing_callback_err);
+		assert.expectError(function () {
+			mongoDB.disconnect("nocallback");
+		}, mongoDB.callback_not_a_function_err);
 	},
 
-	"Test if calling disconnect without a prior connect call throws an error": function (test) {
-		test.async(3500);
+	"Test if calling DISCONNECT without a prior connect call throws an error": function (test) {
+		test.async(1000);
 
 		var mongoDB = new MongoDB(createConfig());
 
@@ -206,13 +191,14 @@ jstest.run({
 		});
 	},
 
-	"Test if calling disconnect with a prior connect call results in a valid connection": function (test) {
-		test.async(3100);
+	"Test if calling DISCONNECT with a prior connect call results in a closed connection": function (test) {
+		test.async(1000);
 
 		var mongoDB = new MongoDB(createConfig());
 
 		var steps = [
 			function Connect_To_DataSource(next) {
+				assert.isFalse(mongoDB.isConnected(), "Expected the database conneciton to be closed.");
 				mongoDB.connect(next);
 			},
 			function Disconnect_From_DataSource(next, err) {
@@ -233,120 +219,383 @@ jstest.run({
 		});
 	},
 
-	"Test if save function check all its arguments properly": function () {
+	"Test if CREATE function checks all its arguments properly": function () {
 		var mongoDB = new MongoDB(createConfig());
 
 		assert.expectError(function () {
-			mongoDB.save();
-		}, "Missing 'data' argument.");
-
-		assert.expectError(function () {
-			mongoDB.save({});
-		}, "Missing 'callback' argument.");
-
-		assert.expectError(function () {
-			mongoDB.save({}, "nocallback");
-		}, "Argument 'callback' must be of type Function");
-	},
-
-	"Test if create function checks all its arguments": function () {
-		var mongoDB = new MongoDB(config);
-
-		assert.expectError(function () {
 			mongoDB.create();
-		}, "Missing 'callback' argument.");
-
+		}, mongoDB.missing_callback_err);
 		assert.expectError(function () {
 			mongoDB.create("nocallback");
-		}, "Argument 'callback' must be of type Function.");
+		}, mongoDB.callback_not_a_function_err);
 	},
 
-	"Test if create function creates a database with specific name and schema without id": function (test) {
-		test.async(2000);
+	"Test if calling CREATE without a prior connect will result in an error": function (test) {
+		test.async(2300);
 
-		var config = createConfig();
-		config.schema = {name: String};
+		var dbName = "crafity-special-test-1";
+		config.url = "mongodb://localhost:27017/" + dbName;
 		var mongoDB = new MongoDB(config);
 
 		var steps = [
 
-			function Connect_To_Nonexisting_Database(next) {
-				mongoDB.connect(next);
-			},
-			function FindAll_To_Nonexisting_Database(next, err) {
-				assert.hasNoValue(err, "Expected no error to be thrown on connecting to physically nonexisting database.");
-				mongoDB.findAll(next);
-			},
-			function Assert_No_Found_Documents_And_Then_Create_Database(next, err, foundDocuments) {
-				// when no database is created, but its name is mentioned in the config.url
-				assert.hasNoValue(err, "Expected no error to be thrown on findAll query on nonexisting database. The mongo effect.");
-				assert.areEqual(0, foundDocuments.length, "Expected the length of the found documents to be 0.");
-
-				// Logically, I expect an error to be thrown then calling connect to a nonexisting database
-				// However this is not the case
+			function Create(next) {
 				mongoDB.create(next);
 			},
-			function Insert_A_Test_Documents(next, err) {
-				assert.hasNoValue(err, "Expected no error to be thrown after creating a .");
-				mongoDB.save({name: "Galina"}, next);
-			},
-			function Assert_Saved_Document_And_FindAll(next, err, savedData) {
-				assert.hasNoValue(err, "Expected error to have no value.");
-				assert.areEqual("Galina", savedData.name, "Expected values to be the same.");
-				mongoDB.findAll(next);
-			},
-			function Assert_One_Document_Is_Insterted(next, err, foundDocuments) {
-				assert.hasNoValue(err, "Expected the error to have no value.");
-				console.log("foundDocuments[0]", foundDocuments[0]);
+			function Assert_Error_For_Closed_Connection(next, err) {
+				assert.areEqual(err.message, mongoDB.no_connection_err);
 
-				assert.areEqual(1, foundDocuments.length, "Expected 1 document to be found.");
 				next();
-			}
-		];
+			}];
 
 		test.steps(steps).on("complete", function (err) {
-			mongoDB.drop(function (deleteErr) { // clean up after creating the test databse
-				if (deleteErr) {
-					throw deleteErr;
-				}
-				mongoDB.disconnect(function () { 
+			test.complete(err);
+		});
+	},
+
+	"Test if CREATE function creates a database with a specific name and returns the name": function (test) {
+		test.async(2000);
+
+		var dbName = "crafity-special-test-2";
+		config.url = "mongodb://localhost:27017/" + dbName;
+		var mongoDB = new MongoDB(config);
+
+		//! assert that the existing database list from server does not contain this dbName
+
+		var steps = [
+			function Connect_to_DataSource(next) {
+				mongoDB.connect(next);
+			},
+			function Create_DataSource(next) {
+				assert.isTrue(mongoDB.isConnected(), "Expected the database conneciton to be open.");
+				mongoDB.create(next);
+			},
+			function Assert_Return_databaseName(next, err, databaseNameResult) {
+				assert.hasNoValue(err, expected_no_error);
+				assert.isSame(dbName, databaseNameResult, "Expected database names to be exactly the same.");
+
+				next();
+			}];
+
+		test.steps(steps).on("complete", function (err) {
+			mongoDB.disconnect(function () {
+				test.complete(err);
+			});
+		});
+
+	},
+
+	"Test if DROP function checks all its arguments properly": function () {
+		var mongoDB = new MongoDB(createConfig());
+
+		assert.expectError(function () {
+			mongoDB.drop();
+		}, mongoDB.missing_callback_err);
+		assert.expectError(function () {
+			mongoDB.drop("nocallback");
+		}, mongoDB.callback_not_a_function_err);
+	},
+
+	"Test if calling DROP of a database without open connection results in an error": function (test) {
+		test.async(1000);
+
+		var mongoDB = new MongoDB(createConfig());
+
+		var steps = [
+
+			function Drop_Database(next) {
+				mongoDB.drop(next);
+			},
+			function Assert_Error_Occured(next, err) {
+				assert.hasValue(err, expected_error);
+				assert.areEqual(err.message, mongoDB.no_connection_err);
+				next();
+			}];
+
+		test.steps(steps).on("complete", function (err) {
+			test.complete(err);
+		});
+	},
+
+	"Test if SAVE function checks all its arguments properly": function () {
+		var mongoDB = new MongoDB(createConfig());
+
+		assert.expectError(function () {
+			mongoDB.save();
+		}, mongoDB.missing_data_err);
+
+		assert.expectError(function () {
+			mongoDB.save({});
+		}, mongoDB.missing_callback_err);
+
+		assert.expectError(function () {
+			mongoDB.save({}, "nocallback");
+		}, mongoDB.callback_not_a_function_err);
+	},
+
+	"Test if calling SAVE without a prior connect will result in an error": function (test) {
+		test.async(900);
+		var mongoDB = new MongoDB(createConfig());
+
+		var testData = {
+			name: "test item",
+			timeStamp: Date.now()
+		};
+
+		var steps = [
+
+			function Save(next) {
+				mongoDB.save(testData, next);
+			},
+			function Assert_Error_Occured(next, err) {
+				assert.hasValue(err, expected_error);
+				assert.areEqual(err.message, mongoDB.no_connection_err);
+				next();
+			}];
+
+		test.steps(steps).on("complete", function (err) {
+			mongoDB.disconnect(function () {
+				test.complete(err);
+			});
+		});
+	},
+
+	"Test if calling SAVE of a nonexisting document will result in the saved document": function (test) {
+		test.async(2500);
+		var mongoDB = new MongoDB(createConfig());
+
+		var testDocument = {
+			name: "test item",
+			timeStamp: Date.now()
+		};
+
+//		console.log("testDocument", testDocument);
+
+		var steps = [
+
+			function Connect_To_DataSource(next) {
+				mongoDB.connect(next);
+			},
+			function Drop_Database(next, err) {
+				assert.hasNoValue(err, expected_no_error);
+				mongoDB.drop(next);
+			},
+			function Assert_No_error_And_Save_Data(next, err) {
+				assert.hasNoValue(err, expected_no_error);
+				mongoDB.save(testDocument, next);
+			},
+			function Assert_No_Error_And_An_Inserted_Document(next, err, savedDocument) {
+//				console.log("savedDocument", savedDocument);
+				assert.hasNoValue(err, expected_no_error);
+				assert.areEqual(testDocument, savedDocument, "Expected the referenced items to be the same.");
+
+				next();
+			}];
+
+		test.steps(steps).on("complete", function (err) {
+			mongoDB.drop(function () {
+				mongoDB.disconnect(function () {
 					test.complete(err);
 				});
 			});
 		});
 	},
 
-	"Test if drop function checks all its arguments properly": function () {
+	"Test if calling SAVE of an existing document will result in modified document": function (test) {
+		test.async(2500);
+		var mongoDB = new MongoDB(createConfig());
+
+		var testDocument = {
+			name: "test item",
+			timeStamp: Date.now()
+		};
+//		console.log("testDocument", testDocument);
+
+		var steps = [
+
+			function Connect_To_DataSource(next) {
+				mongoDB.connect(next);
+			},
+			function Drop_Database(next, err) {
+				assert.hasNoValue(err, expected_no_error);
+				mongoDB.drop(next);
+			},
+			function Assert_No_error_And_Save_Data(next, err) {
+				assert.hasNoValue(err, expected_no_error);
+				mongoDB.save(testDocument, next);
+			},
+			function Assert_No_error_And_Save_Data(next, err, savedDocument) {
+				assert.hasNoValue(err, expected_no_error);
+				assert.areEqual(testDocument, savedDocument, "Expected the referenced items to be the same.");
+
+				savedDocument.name = "test modified";
+				mongoDB.save(testDocument, next);
+			},
+			function Assert_No_Error_And_An_Inserted_Document(next, err, updatedResult) {
+//				console.log("updatedResult =", updatedResult);
+				assert.hasNoValue(err, expected_no_error);
+				assert.areEqual(1, updatedResult, "Expected the the document to be modified succefully.");
+
+				next();
+			}];
+
+		test.steps(steps).on("complete", function (err) {
+			mongoDB.drop(function () {
+				mongoDB.disconnect(function () {
+					test.complete(err);
+				});
+			});
+		});
+	},
+
+	"Test if calling DROP on an existing database results in actual dropping of the database": function (test) {
+		test.async(2000);
+		var config = createConfig();
+		var mongoDB = new MongoDB(config);
+
+		var steps = [
+
+			function Connect_To_Database(next) {
+				mongoDB.connect(next);
+			},
+			function Assert_No_Error_And_Drop_Database(next, err) {
+				assert.hasNoValue(err, expected_no_error);
+
+				mongoDB.drop(next);
+			},
+			function Assert_No_Error_And_NoListed_Database(next, err, done) {
+				assert.hasNoValue(err, expected_no_error);
+				assert.isTrue(done, "Expected the drop database result to be true.");
+
+				next();
+			}];
+
+		test.steps(steps).on("complete", function (err) {
+			mongoDB.disconnect(function () {
+				test.complete(err);
+			});
+		});
+	},
+
+	"Test if calling DROP database twice results in just one actual dropping of the database": function (test) {
+		test.async(3000);
+
+		var config = createConfig();
+		var mongoDB = new MongoDB(config);
+
+		var steps = [
+
+			function Connect_To_Database(next) {
+				mongoDB.connect(next);
+			},
+			function Assert_No_Error_And_Drop_Database(next, err) {
+				assert.hasNoValue(err, expected_no_error);
+
+				mongoDB.drop(next);
+			},
+			function Assert_No_Error_And_NoListed_Database(next, err, done) {
+				assert.hasNoValue(err, expected_no_error);
+				assert.isTrue(done, "Expected the drop database result to be true.");
+
+				mongoDB.drop(next);
+			},
+			function Assert_No_Error_And_NoListed_Database(next, err, done) {
+				assert.hasNoValue(err, expected_no_error);
+				assert.isTrue(done, "Expected the drop database result to be true.");
+
+				next();
+			}];
+
+		test.steps(steps).on("complete", function (err) {
+			mongoDB.disconnect(function () {
+				test.complete(err);
+			});
+		});
+	},
+
+	"Test if findByKey function checks all its arguments properly": function () {
 		var mongoDB = new MongoDB(createConfig());
 
 		assert.expectError(function () {
-			mongoDB.drop();
-		}, "Missing 'callback' argument.");
+			mongoDB.findByKey();
+		}, mongoDB.missing_key_err);
+
 		assert.expectError(function () {
-			mongoDB.drop("nocallback");
-		}, "Argument 'callback' must be of type Function.");
-	}
+			mongoDB.findByKey({});
+		}, mongoDB.missing_callback_err);
 
-//	"Test if drop function drop a database with specific name": function (test) {
-//		test.async(2500);
-//
-//		var mongoDB = new MongoDB(createConfig());
-//
-//		var steps = [
-//			function Drop(next) {
-//				mongoDB.drop();
-//			},
-//			function Assert_(next) {
-//
-//				next();
-//			}];
-//
-//		test.steps(steps).on("complete", function (err) {
-//			test.complete(err);
-//		});
-//	}
-//
+		assert.expectError(function () {
+			mongoDB.findByKey({}, "nocallback");
+		}, mongoDB.callback_not_a_function_err);
+	},
 
+	"Test if calling findByKey without prior connection results in an error": function (test) {
+		test.async(1000);
+
+		var mongoDB = new MongoDB(createConfig());
+
+		var steps = [
+			function FindByKey_Query(next) {
+				mongoDB.findByKey({name: "test"}, next);
+			},
+			function Assert_Error_Occured(next, err) {
+				assert.hasValue(err, expected_error);
+				assert.areEqual(err.message, mongoDB.no_connection_err);
+				next();
+			}];
+
+		test.steps(steps).on("complete", function (err) {
+			test.complete(err);
+		});
+	},
+
+	"Test if calling findByKey for an existing document results in the document": function (test) {
+		test.async(3000);
+
+		var mongoDB = new MongoDB(createConfig());
+
+		var steps = [
+			function Connect_To_Database(next) {
+				mongoDB.connect(next);
+			},
+			function Insert_Document(next, err) {
+				assert.hasNoValue(err, expected_error);
+
+				mongoDB.save({"name": "test"}, next);
+			},
+			function Assert_No_Error_And_FindByKey_Query(next, err, savedDocument) {
+				console.log("savedDocument = ", savedDocument);
+				assert.hasNoValue(err, expected_error);
+
+				mongoDB.findByKey({"name": "test"}, next);
+			},
+			function Assert_No_Error_And_Found_Document(next, err, foundDocument) {
+				console.log("foundDocument = ", foundDocument);
+				
+				assert.hasNoValue(err, expected_no_error);
+				next();
+			}];
+
+		test.steps(steps).on("complete", function (err) {
+			mongoDB.drop(function () {
+				mongoDB.disconnect(function () {
+					test.complete(err);
+				});
+			});
+		});
+	},
+
+	"Test if findAll function checks all its arguments properly": function () {
+		var mongoDB = new MongoDB(createConfig());
+
+		assert.expectError(function () {
+			mongoDB.findAll();
+		}, mongoDB.missing_callback_err);
+
+		assert.expectError(function () {
+			mongoDB.findAll("nocallback");
+		}, mongoDB.callback_not_a_function_err);
+	},
 });
 
 /**
@@ -354,3 +603,5 @@ jstest.run({
  * @type {exports.createContext|*}
  */
 module.exports = jstest;
+
+
