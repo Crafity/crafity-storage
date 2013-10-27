@@ -497,7 +497,7 @@ jstest.run({
 		});
 	},
 
-	"Test if calling saveMany of nonexisting documents will result in the inserted documents with a technical _id": function (test) {
+	"Test if calling saveMany on nonexisting documents will result in the inserted documents with a technical _id": function (test) {
 		test.async(6000);
 		var mongoDB = new MongoDB(createConfig());
 
@@ -531,52 +531,76 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
-//				mongoDB.drop(function () {
-			mongoDB.disconnect(function () {
-				test.complete(err);
+			mongoDB.drop(function () {
+				mongoDB.disconnect(function () {
+					test.complete(err);
+				});
 			});
-//				});
 		});
 	},
 
-//	"Test if calling saveMany of existing documents will result in the inserted documents with a technical _id": function (test) {
-//			test.async(6000);
-//			var mongoDB = new MongoDB(createConfig());
-//	
-//		var testData = [
-//			{name: "test item 1", timeStamp: Date.now()},
-//			{name: "test item 2", timeStamp: Date.now()},
-//			{name: "test item 3", timeStamp: Date.now()}
-//		];
-//	
-//			var steps = [
-//				function Connect_To_DataSource(next) {
-//					mongoDB.connect(next);
-//				},
-//				function Drop_Database(next, err) {
-//					assert.hasNoValue(err, expected_no_error);
-//					mongoDB.drop(next);
-//				},
-//				function Assert_No_error_And_Save_Data(next, err) {
-//					assert.hasNoValue(err, expected_no_error);
-//					mongoDB.saveMany(testData, next);
-//				},
-//				function Assert_No_Error_And_An_Inserted_Document(next, err, result) {
-//					assert.hasNoValue(err, expected_no_error);
-//					console.log("result", result);
-////					assert.areEqual(testDocument, savedDocument, "Expected the referenced items to be the same.");
-//	
-//					next();
-//				}];
-//	
-//			test.steps(steps).on("complete", function (err) {
-////				mongoDB.drop(function () {
-//					mongoDB.disconnect(function () {
-//						test.complete(err);
-//					});
-////				});
-//			});
-//		},
+	"Test if calling saveMany on existing documents will result in the modified documents": function (test) {
+		test.async(6000);
+
+		var mongoDB = new MongoDB(createConfig());
+		var insertedDocuments = null;
+
+		var testData = [
+			{name: "test item 1", timeStamp: Date.now()},
+			{name: "test item 2", timeStamp: Date.now()},
+			{name: "test item 3", timeStamp: Date.now()}
+		];
+
+		var steps = [
+			function Connect_To_DataSource(next) {
+				mongoDB.connect(next);
+			},
+			function Drop_Database(next, err) {
+				assert.hasNoValue(err, expected_no_error);
+				mongoDB.drop(next);
+			},
+			function Assert_No_Error_And_Insert_Data(next, err) {
+				assert.hasNoValue(err, expected_no_error);
+				mongoDB.saveMany(testData, next);
+			},
+			function Assert_No_Error_And_Update_Documents(next, err, documentList) {
+				insertedDocuments = documentList;
+
+				assert.hasNoValue(err, expected_no_error);
+				assert.isInstanceOf(Array, insertedDocuments, "Expected to return array of documents.");
+				assert.areEqual(3, insertedDocuments.length, "Expected to return array of 3 documents.");
+
+				insertedDocuments.forEach(function (doc) {
+					assert.hasValue(doc._id, "Expected a newly created document _id.");
+				});
+
+				insertedDocuments.forEach(function (doc) {
+					doc.name = "modified item ";
+				});
+
+				mongoDB.saveMany(insertedDocuments, next);
+			},
+			function Assert_No_Error_And_An_Inserted_Document(next, err, documentList) {
+				assert.hasNoValue(err, expected_no_error);
+				assert.isInstanceOf(Array, documentList, "Expected to return array of documents.");
+				assert.areEqual(3, documentList.length, "Expected to return array of 3 documents.");
+
+				assert.isNotSame(insertedDocuments[0], documentList[0], "Expected the document before and after update not to be of the same reference.");
+				assert.areEqual(insertedDocuments[0].name, documentList[0].name, "Expected that the document name before and after update to have the same values.");
+
+				next();
+			}
+
+		];
+
+		test.steps(steps).on("complete", function (err) {
+			mongoDB.drop(function () {
+				mongoDB.disconnect(function () {
+					test.complete(err);
+				});
+			});
+		});
+	},
 
 	"Test if calling DROP on an existing database results in actual dropping of the database": function (test) {
 		test.async(9000);
