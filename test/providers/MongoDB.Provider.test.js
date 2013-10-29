@@ -642,6 +642,181 @@ jstest.run({
 		});
 	},
 
+	"Test if REMOVE function checks all its arguments properly": function () {
+		var mongoDB = new MongoDB(createConfig());
+		console.log("\nREMOVE function check all ...... mongoDB.dbName = \n", mongoDB.dbName);
+
+		assert.expectError(function () {
+			mongoDB.remove();
+		}, mongoDB.missing_data_err);
+
+		assert.expectError(function () {
+			mongoDB.remove({"name": "test"});
+		}, mongoDB.missing_data_id_err);
+
+		assert.expectError(function () {
+			mongoDB.remove({"_id": 123, "name": "test"});
+		}, mongoDB.missing_callback_err);
+
+		assert.expectError(function () {
+			mongoDB.remove({"_id": 123, "name": "test"}, "nocallback");
+		}, mongoDB.callback_not_a_function_err);
+	},
+
+	"Test if calling REMOVE without a prior open connect will result in an error": function (test) {
+		test.async(900);
+		var mongoDB = new MongoDB(createConfig());
+		console.log("\nREMOVE without a prior open ...... mongoDB.dbName", mongoDB.dbName);
+
+		var steps = [
+
+			function Save_Documents(next) {
+				mongoDB.remove({"_id": 123, "name": "test"}, next);
+			},
+			function Assert_Error_Occured(next, err) {
+				assert.hasValue(err, expected_error);
+				assert.areEqual(err.message, mongoDB.no_connection_err);
+				next();
+			}];
+
+		test.steps(steps).on("complete", function (err) {
+			test.complete(err);
+		});
+	},
+
+	"Test if calling REMOVE on nonexisting document giving invalid _id will result in an error": function (test) {
+		test.async(9000);
+		var mongoDB = new MongoDB(createConfig());
+		console.log("\nREMOVE on nonexisting document giving invalid _id ...... mongoDB.dbName", mongoDB.dbName);
+
+		var steps = [
+			function Connect_To_DataSource(next) {
+				mongoDB.connect(next);
+			},
+			function Drop_Database(next, err) {
+				assert.hasNoValue(err, expected_no_error);
+				mongoDB.drop(next);
+			},
+			function Assert_No_error_And_Save_Data(next, err) {
+				assert.hasNoValue(err, expected_no_error);
+
+				assert.expectError(function () {
+					mongoDB.remove({ "_id": "52701be3a42x0xx", "name": "test item 1"}, next);
+				}, "Error: the provided _id is not a valid one. It must be a single String of 12 bytes or a string of 24 hex characters.");
+
+				next();
+			}];
+
+		test.steps(steps).on("complete", function (err) {
+			mongoDB.drop(function () {
+				mongoDB.disconnect(function () {
+					test.complete(err);
+				});
+			});
+		});
+	},
+
+	"Test if calling REMOVE on nonexisting document will result in silence and no error": function (test) {
+		test.async(9000);
+		var mongoDB = new MongoDB(createConfig());
+		console.log("\nREMOVE on nonexisting document will result in ...... mongoDB.dbName", mongoDB.dbName);
+
+		var steps = [
+			function Connect_To_DataSource(next) {
+				mongoDB.connect(next);
+			},
+			function Drop_Database(next, err) {
+				assert.hasNoValue(err, expected_no_error);
+				mongoDB.drop(next);
+			},
+			function Assert_No_error_And_Save_Data(next, err) {
+				assert.hasNoValue(err, expected_no_error);
+				mongoDB.remove({ "_id": "52701be3a424179f3500000c", "name": "test item 1"}, next);
+			},
+			function Assert_No_Error_And_An_Inserted_Document(next, err) {
+				assert.hasNoValue(err, expected_no_error);
+				next();
+			}];
+
+		test.steps(steps).on("complete", function (err) {
+			mongoDB.drop(function () {
+				mongoDB.disconnect(function () {
+					test.complete(err);
+				});
+			});
+		});
+	},
+
+	"Test if calling REMOVE on existing document will result in actual removal": function (test) {
+		test.async(6000);
+
+		var mongoDB = new MongoDB(createConfig());
+		console.log("\nREMOVE on existing document will result in ...... mongoDB.dbName", mongoDB.dbName);
+		var insertedDocuments = null;
+
+		var testData = [
+			{name: "test item 1", timeStamp: Date.now()},
+			{name: "test item 2", timeStamp: Date.now()},
+			{name: "test item 3", timeStamp: Date.now()}
+		];
+
+		var steps = [
+			function Connect_To_DataSource(next) {
+				mongoDB.connect(next);
+			},
+			function Drop_Database(next, err) {
+				assert.hasNoValue(err, expected_no_error);
+				mongoDB.drop(next);
+			},
+			function Assert_No_Error_And_Insert_Data(next, err) {
+				assert.hasNoValue(err, expected_no_error);
+				mongoDB.saveMany(testData, next);
+			},
+			function Assert_No_Error_And_Update_Documents(next, err, documentList) {
+				insertedDocuments = documentList;
+
+				assert.hasNoValue(err, expected_no_error);
+				assert.isInstanceOf(Array, insertedDocuments, "Expected to return array of documents.");
+				assert.areEqual(3, insertedDocuments.length, "Expected to return array of 3 documents.");
+
+				insertedDocuments.forEach(function (doc) {
+					assert.hasValue(doc._id, "Expected a newly created document _id.");
+				});
+
+				console.log("\n ABOUT TO REMOVE from database == ", mongoDB.dbName);
+				mongoDB.remove(insertedDocuments[0], next);
+			},
+			function Assert_No_error_And_Find_All(next, err, result) {
+				console.log("result AFTER removal", result);
+				assert.hasNoValue(err, expected_no_error);
+
+				mongoDB.findAll(next);
+			},
+
+			function Assert_No_Error_And_An_Inserted_Document(next, err, foundDocuments) {
+				console.log("founDocuments", foundDocuments);
+				assert.hasNoValue(err, expected_no_error);
+				assert.isInstanceOf(Array, foundDocuments, "Expected to return array of documents.");
+				assert.areEqual(2, foundDocuments.length, "Expected to return array of 2 documents.");
+
+				foundDocuments.forEach(function (doc) {
+					assert.areNotEqual("test item 1", doc.name, "Expected the name of this document not to be equal to 'test item 1'");
+				});
+
+				next();
+			}
+
+		];
+
+		test.steps(steps).on("complete", function (err) {
+//			mongoDB.drop(function () {
+			mongoDB.disconnect(function () {
+				test.complete(err);
+			});
+//			});
+		});
+	},
+
 	"Test if calling DROP database twice results in just one actual dropping of the database": function (test) {
 		test.async(9000);
 
