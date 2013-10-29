@@ -354,7 +354,7 @@ jstest.run({
 			});
 		});
 	},
-	
+
 	"Test if SAVE function checks all its arguments properly": function () {
 		var mongoDB = new MongoDB(createConfig());
 
@@ -507,7 +507,7 @@ jstest.run({
 		assert.expectError(function () {
 			mongoDB.save({}, "nocallback");
 		}, mongoDB.callback_not_a_function_err);
-	}, 
+	},
 
 	"Test if calling saveMany without a prior open connect will result in an error": function (test) {
 		test.async(900);
@@ -679,7 +679,7 @@ jstest.run({
 	"Test if findByKey function checks all its arguments properly": function () {
 		var mongoDB = new MongoDB(createConfig());
 		console.log("\nfindByKey function checks all its ...... mongoDB.dbName", mongoDB.dbName);
-		
+
 		assert.expectError(function () {
 			mongoDB.findByKey();
 		}, mongoDB.missing_key_err);
@@ -714,12 +714,12 @@ jstest.run({
 		});
 	},
 
-	"Test if calling findByKey for an existing document results in one found document": function (test) {
+	"Test if calling findManyByKey for an existing document results in one found document": function (test) {
 		test.async(9000);
 
 		var mongoDB = new MongoDB(createConfig());
 		console.log("\nfindByKey for an existing document results ...... mongoDB.dbName", mongoDB.dbName);
-		
+
 		var steps = [
 			function Connect_To_Database(next) {
 				mongoDB.connect(next);
