@@ -752,6 +752,96 @@ jstest.run({
 		});
 	},
 
+	"Test if findManyByKey function checks all its arguments properly": function () {
+		var mongoDB = new MongoDB(createConfig());
+		console.log("\nfindManyByKey function checks all its ...... mongoDB.dbName", mongoDB.dbName);
+
+		assert.expectError(function () {
+			mongoDB.findManyByKey();
+		}, mongoDB.missing_key_err);
+
+		assert.expectError(function () {
+			mongoDB.findManyByKey({});
+		}, mongoDB.missing_callback_err);
+
+		assert.expectError(function () {
+			mongoDB.findManyByKey({}, "nocallback");
+		}, mongoDB.callback_not_a_function_err);
+	},
+
+	"Test if calling findManyByKey without prior open connection results in an error": function (test) {
+		test.async(9000);
+
+		var mongoDB = new MongoDB(createConfig());
+		console.log("\nfindManyByKey without prior open connection results ...... mongoDB.dbName", mongoDB.dbName);
+
+		var steps = [
+			function FindManyByKey_Query(next) {
+				mongoDB.findByKey({name: "test"}, next);
+			},
+			function Assert_Error_Occured(next, err) {
+				assert.hasValue(err, expected_error);
+				assert.areEqual(err.message, mongoDB.no_connection_err);
+				next();
+			}];
+
+		test.steps(steps).on("complete", function (err) {
+			test.complete(err);
+		});
+	},
+
+	"Test if calling findManyByKey will result in an Array of found documents": function (test) {
+		test.async(9000);
+		var mongoDB = new MongoDB(createConfig());
+		console.log("\nfindManyByKey will result in an Array  ...... mongoDB.dbName", mongoDB.dbName);
+
+		var testData = [
+			{name: "test item 1", timeStamp: Date.now()},
+			{name: "test item 2", timeStamp: Date.now()},
+			{name: "test item 3", timeStamp: Date.now()}
+		];
+
+		var steps = [
+			function Connect_To_DataSource(next) {
+				mongoDB.connect(next);
+			},
+			function Drop_Database(next, err) {
+				assert.hasNoValue(err, expected_no_error);
+				mongoDB.drop(next);
+			},
+			function Assert_No_error_And_Save_Data(next, err) {
+				assert.hasNoValue(err, expected_no_error);
+				mongoDB.saveMany(testData, next);
+			},
+			function Assert_No_Error_And_An_Inserted_Document(next, err, documentList) {
+				assert.hasNoValue(err, expected_no_error);
+				assert.isInstanceOf(Array, documentList, "Expected to return array of documents.");
+				assert.areEqual(3, documentList.length, "Expected to return array of 3 documents.");
+
+				documentList.forEach(function (doc) {
+					assert.hasValue(doc._id, "Expected a newly created document _id.");
+				});
+
+				mongoDB.findManyByKey({ "name": /test item/}, next);
+
+			},
+			function Assert_Found_Document_Array(next, err, foundDocuments) {
+				assert.hasNoValue(err, expected_no_error);
+				assert.isInstanceOf(Array, foundDocuments, "Expected to return array of documents.");
+				assert.areEqual(3, foundDocuments.length, "Expected to return array of 3 documents.");
+
+				next();
+			}];
+
+		test.steps(steps).on("complete", function (err) {
+			mongoDB.drop(function () {
+				mongoDB.disconnect(function () {
+					test.complete(err);
+				});
+			});
+		});
+	},
+
 	"Test if findAll function checks all its arguments properly": function () {
 		var mongoDB = new MongoDB(createConfig());
 		console.log("\nfindAll function checks all its ...... mongoDB.dbName", mongoDB.dbName);
