@@ -226,7 +226,7 @@ jstest.run({
 
 	"Test if CREATE function checks all its arguments properly": function () {
 		var mongoDB = new MongoDB(createConfig());
-		console.log("\nCREATE function checks all its arguments ...... mongoDB.dbName = \n", mongoDB.dbName);
+		//console.log("\nCREATE function checks all its arguments ...... mongoDB.dbName = \n", mongoDB.dbName);
 
 		assert.expectError(function () {
 			mongoDB.create();
@@ -265,7 +265,7 @@ jstest.run({
 		var dbName = "crafity-test-2";
 		config.url = "mongodb://localhost:27017/" + dbName;
 		var mongoDB = new MongoDB(config);
-		console.log("\nCREATE function creates a database with a specific name ...... mongoDB.dbName = \n", mongoDB.dbName);
+		//console.log("\nCREATE function creates a database with a specific name ...... mongoDB.dbName = \n", mongoDB.dbName);
 
 		//! assert that the existing database list from server does not contain this dbName
 
@@ -294,7 +294,7 @@ jstest.run({
 
 	"Test if DROP function checks all its arguments properly": function () {
 		var mongoDB = new MongoDB(createConfig());
-		console.log("\nDROP function checks all its arguments properly ...... mongoDB.dbName = \n", mongoDB.dbName);
+		//console.log("\nDROP function checks all its arguments properly ...... mongoDB.dbName = \n", mongoDB.dbName);
 
 		assert.expectError(function () {
 			mongoDB.drop();
@@ -308,7 +308,7 @@ jstest.run({
 		test.async(9000);
 
 		var mongoDB = new MongoDB(createConfig());
-		console.log("\ncalling DROP on an existing database rewsult ...... mongoDB.dbName = \n", mongoDB.dbName);
+		//console.log("\ncalling DROP on an existing database rewsult ...... mongoDB.dbName = \n", mongoDB.dbName);
 
 		var steps = [
 
@@ -330,7 +330,7 @@ jstest.run({
 		test.async(9000);
 		var config = createConfig();
 		var mongoDB = new MongoDB(config);
-		console.log("\ncalling DROP on an existing database rewsult ...... mongoDB.dbName = \n", mongoDB.dbName);
+		//console.log("\ncalling DROP on an existing database rewsult ...... mongoDB.dbName = \n", mongoDB.dbName);
 
 		var steps = [
 
@@ -374,7 +374,7 @@ jstest.run({
 	"Test if calling SAVE without a prior open connect will result in an error": function (test) {
 		test.async(9000);
 		var mongoDB = new MongoDB(createConfig());
-		console.log("\ncalling SAVE without a prior open connect will result in ...... mongoDB.dbName = \n", mongoDB.dbName);
+		//console.log("\ncalling SAVE without a prior open connect will result in ...... mongoDB.dbName = \n", mongoDB.dbName);
 
 		var testData = {
 			name: "test item",
@@ -400,7 +400,7 @@ jstest.run({
 	"Test if calling SAVE of a nonexisting document will result in the inserted document with a technical _id": function (test) {
 		test.async(9000);
 		var mongoDB = new MongoDB(createConfig());
-		console.log("\ncalling SAVE of a nonexisting document will result in ...... mongoDB.dbName = \n", mongoDB.dbName);
+		//console.log("\ncalling SAVE of a nonexisting document will result in ...... mongoDB.dbName = \n", mongoDB.dbName);
 
 		var testDocument = {
 			name: "test item",
@@ -441,7 +441,7 @@ jstest.run({
 	"Test if calling SAVE of an existing document will result in a modified document": function (test) {
 		test.async(9000);
 		var mongoDB = new MongoDB(createConfig());
-		console.log("\ncalling SAVE of an existing document will result in a modified ...... mongoDB.dbName = \n", mongoDB.dbName);
+		//console.log("\ncalling SAVE of an existing document will result in a modified ...... mongoDB.dbName = \n", mongoDB.dbName);
 
 		var testDocument = {
 			name: "test item",
@@ -494,7 +494,7 @@ jstest.run({
 
 	"Test if saveMany function checks all its arguments properly": function () {
 		var mongoDB = new MongoDB(createConfig());
-		console.log("\nsaveMany function check all ...... mongoDB.dbName = \n", mongoDB.dbName);
+		//console.log("\nsaveMany function check all ...... mongoDB.dbName = \n", mongoDB.dbName);
 
 		assert.expectError(function () {
 			mongoDB.save();
@@ -512,7 +512,7 @@ jstest.run({
 	"Test if calling saveMany without a prior open connect will result in an error": function (test) {
 		test.async(900);
 		var mongoDB = new MongoDB(createConfig());
-		console.log("\nsaveMany without a prior open ...... mongoDB.dbName", mongoDB.dbName);
+		//console.log("\nsaveMany without a prior open ...... mongoDB.dbName", mongoDB.dbName);
 
 		var testData = [
 			{name: "test item 1", timeStamp: Date.now()},
@@ -538,7 +538,7 @@ jstest.run({
 	"Test if calling saveMany on nonexisting documents will result in the inserted documents with a technical _id": function (test) {
 		test.async(6000);
 		var mongoDB = new MongoDB(createConfig());
-		console.log("\nsaveMany on nonexisting documents ...... mongoDB.dbName", mongoDB.dbName);
+		//console.log("\nsaveMany on nonexisting documents ...... mongoDB.dbName", mongoDB.dbName);
 
 		var testData = [
 			{name: "test item 1", timeStamp: Date.now()},
@@ -582,7 +582,7 @@ jstest.run({
 		test.async(6000);
 
 		var mongoDB = new MongoDB(createConfig());
-		console.log("\n saveMany on existing ...... mongoDB.dbName", mongoDB.dbName);
+		//console.log("\n saveMany on existing ...... mongoDB.dbName", mongoDB.dbName);
 		var insertedDocuments = null;
 
 		var testData = [
@@ -644,7 +644,7 @@ jstest.run({
 
 	"Test if REMOVE function checks all its arguments properly": function () {
 		var mongoDB = new MongoDB(createConfig());
-		console.log("\nREMOVE function check all ...... mongoDB.dbName = \n", mongoDB.dbName);
+		//console.log("\nREMOVE function check all ...... mongoDB.dbName = \n", mongoDB.dbName);
 
 		assert.expectError(function () {
 			mongoDB.remove();
@@ -666,7 +666,7 @@ jstest.run({
 	"Test if calling REMOVE without a prior open connect will result in an error": function (test) {
 		test.async(900);
 		var mongoDB = new MongoDB(createConfig());
-		console.log("\nREMOVE without a prior open ...... mongoDB.dbName", mongoDB.dbName);
+		//console.log("\nREMOVE without a prior open ...... mongoDB.dbName", mongoDB.dbName);
 
 		var steps = [
 
@@ -687,7 +687,7 @@ jstest.run({
 	"Test if calling REMOVE on nonexisting document giving invalid _id will result in an error": function (test) {
 		test.async(9000);
 		var mongoDB = new MongoDB(createConfig());
-		console.log("\nREMOVE on nonexisting document giving invalid _id ...... mongoDB.dbName", mongoDB.dbName);
+		//console.log("\nREMOVE on nonexisting document giving invalid _id ...... mongoDB.dbName", mongoDB.dbName);
 
 		var steps = [
 			function Connect_To_DataSource(next) {
@@ -719,7 +719,7 @@ jstest.run({
 	"Test if calling REMOVE on nonexisting document will result in silence and no error": function (test) {
 		test.async(9000);
 		var mongoDB = new MongoDB(createConfig());
-		console.log("\nREMOVE on nonexisting document will result in ...... mongoDB.dbName", mongoDB.dbName);
+		//console.log("\nREMOVE on nonexisting document will result in ...... mongoDB.dbName", mongoDB.dbName);
 
 		var steps = [
 			function Connect_To_DataSource(next) {
@@ -751,7 +751,7 @@ jstest.run({
 		test.async(6000);
 
 		var mongoDB = new MongoDB(createConfig());
-		console.log("\nREMOVE on existing document will result in ...... mongoDB.dbName", mongoDB.dbName);
+		//console.log("\nREMOVE on existing document will result in ...... mongoDB.dbName", mongoDB.dbName);
 		var insertedDocuments = null;
 
 		var testData = [
@@ -768,7 +768,7 @@ jstest.run({
 				assert.hasNoValue(err, expected_no_error);
 				mongoDB.drop(next);
 			},
-			function Assert_No_Error_And_Insert_Data(next, err) {
+			function Assert_No_Error_And_Insert_Documents(next, err) {
 				assert.hasNoValue(err, expected_no_error);
 				mongoDB.saveMany(testData, next);
 			},
@@ -783,7 +783,7 @@ jstest.run({
 					assert.hasValue(doc._id, "Expected a newly created document _id.");
 				});
 
-				console.log("\n ABOUT TO REMOVE from database == ", mongoDB.dbName);
+				//console.log("\n ABOUT TO REMOVE from database == ", mongoDB.dbName);
 				mongoDB.remove(insertedDocuments[0], next);
 			},
 			function Assert_No_error_And_Find_All(next, err, result) {
@@ -853,7 +853,7 @@ jstest.run({
 
 	"Test if findByKey function checks all its arguments properly": function () {
 		var mongoDB = new MongoDB(createConfig());
-		console.log("\nfindByKey function checks all its ...... mongoDB.dbName", mongoDB.dbName);
+		//console.log("\nfindByKey function checks all its ...... mongoDB.dbName", mongoDB.dbName);
 
 		assert.expectError(function () {
 			mongoDB.findByKey();
@@ -872,7 +872,7 @@ jstest.run({
 		test.async(9000);
 
 		var mongoDB = new MongoDB(createConfig());
-		console.log("\nfindByKey without prior open connection results ...... mongoDB.dbName", mongoDB.dbName);
+		//console.log("\nfindByKey without prior open connection results ...... mongoDB.dbName", mongoDB.dbName);
 
 		var steps = [
 			function FindByKey_Query(next) {
@@ -893,7 +893,7 @@ jstest.run({
 		test.async(9000);
 
 		var mongoDB = new MongoDB(createConfig());
-		console.log("\nfindByKey for an existing document results ...... mongoDB.dbName", mongoDB.dbName);
+		//console.log("\nfindByKey for an existing document results ...... mongoDB.dbName", mongoDB.dbName);
 
 		var steps = [
 			function Connect_To_Database(next) {
@@ -929,7 +929,7 @@ jstest.run({
 
 	"Test if findManyByKey function checks all its arguments properly": function () {
 		var mongoDB = new MongoDB(createConfig());
-		console.log("\nfindManyByKey function checks all its ...... mongoDB.dbName", mongoDB.dbName);
+		//console.log("\nfindManyByKey function checks all its ...... mongoDB.dbName", mongoDB.dbName);
 
 		assert.expectError(function () {
 			mongoDB.findManyByKey();
@@ -948,7 +948,7 @@ jstest.run({
 		test.async(9000);
 
 		var mongoDB = new MongoDB(createConfig());
-		console.log("\nfindManyByKey without prior open connection results ...... mongoDB.dbName", mongoDB.dbName);
+		//console.log("\nfindManyByKey without prior open connection results ...... mongoDB.dbName", mongoDB.dbName);
 
 		var steps = [
 			function FindManyByKey_Query(next) {
@@ -968,7 +968,7 @@ jstest.run({
 	"Test if calling findManyByKey will result in an Array of found documents": function (test) {
 		test.async(9000);
 		var mongoDB = new MongoDB(createConfig());
-		console.log("\nfindManyByKey will result in an Array  ...... mongoDB.dbName", mongoDB.dbName);
+		//console.log("\nfindManyByKey will result in an Array  ...... mongoDB.dbName", mongoDB.dbName);
 
 		var testData = [
 			{name: "test item 1", timeStamp: Date.now()},
@@ -1019,7 +1019,7 @@ jstest.run({
 
 	"Test if findAll function checks all its arguments properly": function () {
 		var mongoDB = new MongoDB(createConfig());
-		console.log("\nfindAll function checks all its ...... mongoDB.dbName", mongoDB.dbName);
+		//console.log("\nfindAll function checks all its ...... mongoDB.dbName", mongoDB.dbName);
 
 		assert.expectError(function () {
 			mongoDB.findAll();
@@ -1034,7 +1034,7 @@ jstest.run({
 		test.async(9000);
 
 		var mongoDB = new MongoDB(createConfig());
-		console.log("\nfindAll without prior open connection ...... mongoDB.dbName", mongoDB.dbName);
+		//console.log("\nfindAll without prior open connection ...... mongoDB.dbName", mongoDB.dbName);
 
 		var steps = [
 			function FindByKey_Query(next) {
@@ -1059,7 +1059,7 @@ jstest.run({
 		test.async(9000);
 
 		var mongoDB = new MongoDB(createConfig());
-		console.log("\nfindAll results in an array of documents ...... mongoDB.dbName", mongoDB.dbName);
+		//console.log("\nfindAll results in an array of documents ...... mongoDB.dbName", mongoDB.dbName);
 
 		var steps = [
 			function Connect_To_Database(next) {
