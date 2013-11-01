@@ -95,6 +95,7 @@ jstest.run({
 		assert.isFalse(mongoDB.isConnected(), "Expected the connection to be closed.");
 	},
 
+	"Test if function CONNECT checks all its arguments properly": function () {
 		var mongoDB = new MongoDB(createConfig());
 
 		assert.expectError(function () {
@@ -267,7 +268,7 @@ jstest.run({
 		var mongoDB = new MongoDB(config);
 		//console.log("\nCREATE function creates a database with a specific name ...... mongoDB.dbName = \n", mongoDB.dbName);
 
-		//! TODO assert that the existing database list from server does not contain this dbName
+		// gaslTODO assert that the existing database list from server does not contain this dbName
 
 		var steps = [
 			function Connect_to_DataSource(next) {
@@ -353,7 +354,41 @@ jstest.run({
 		});
 	},
 
-	"Test if SAVE function checks all its arguments properly": function () {
+	"Test if calling DROP database twice results in just one actual dropping of the database": function (test) {
+		test.async(9000);
+
+		var config = createConfig();
+		var mongoDB = new MongoDB(config);
+
+		var steps = [
+
+			function Connect_To_Database(next) {
+				mongoDB.connect(next);
+			},
+			function Assert_No_Error_And_Drop_Database(next, err) {
+				assert.hasNoValue(err, expected_no_error);
+
+				mongoDB.drop(next);
+			},
+			function Assert_No_Error_And_NoListed_Database(next, err) {
+				assert.hasNoValue(err, expected_no_error);
+
+				mongoDB.drop(next);
+			},
+			function Assert_No_Error_And_NoListed_Database(next, err) {
+				assert.hasNoValue(err, expected_no_error);
+
+				next();
+			}];
+
+		test.steps(steps).on("complete", function (err) {
+			mongoDB.disconnect(function () {
+				test.complete(err);
+			});
+		});
+	},
+
+	"Test if function SAVE checks all its arguments properly": function () {
 		var mongoDB = new MongoDB(createConfig());
 
 		assert.expectError(function () {
@@ -732,7 +767,7 @@ jstest.run({
 //			},
 			function Assert_No_error_And_Remove_Document(next, err) {
 				assert.hasNoValue(err, expected_no_error);
-				mongoDB.remove({ "_id": "52701be3a424179f3500000c", "name": "test item 1"}, next);
+				mongoDB.remove({ "_id": dummyObjectID, "name": "test item 1"}, next);
 			},
 			function Assert_No_Error_And_An_Inserted_Document(next, err) {
 				assert.hasNoValue(err, expected_no_error);
@@ -764,10 +799,6 @@ jstest.run({
 		var steps = [
 			function Connect_To_DataSource(next) {
 				mongoDB.connect(next);
-			},
-			function Drop_Database(next, err) {
-				assert.hasNoValue(err, expected_no_error);
-				mongoDB.drop(next);
 			},
 			function Assert_No_Error_And_Insert_Documents(next, err) {
 				assert.hasNoValue(err, expected_no_error);
@@ -939,8 +970,8 @@ jstest.run({
 				assert.areEqual(0, foundDocuments.length, "Expected foundDocuments to have no length.");
 
 				mongoDB.removeMany([
-					{"_id": "52701be3a424179f3500000c", "name": "test item 1"},
-					{"_id": "52701be3a424179f3500000c", "name": "test item 2"}
+					{"_id": dummyObjectID, "name": "test item 1"},
+					{"_id": dummyObjectID, "name": "test item 2"}
 				], next);
 			},
 			function Assert_No_Error_And_findAll_Documents(next, err) {
@@ -1024,35 +1055,118 @@ jstest.run({
 		});
 	},
 
-	"Test if function findByKey checks all its arguments properly": function () {
+	"Test if function findById checks all its arguments properly": function () {
+		var mongoDB = new MongoDB(createConfig());
+		//console.log("\nfunction findByKey checks all its ...... mongoDB.dbName", mongoDB.dbName);
 
-		var config = createConfig();
-		var mongoDB = new MongoDB(config);
+		assert.expectError(function () {
+			mongoDB.findById();
+		}, mongoDB.missing_arguments_err + 2);
+
+		assert.expectError(function () {
+			mongoDB.findById("id");
+		}, mongoDB.missing_arguments_err + 2);
+
+		assert.expectError(function () {
+			mongoDB.findById({}, "callback");
+		}, mongoDB.id_not_string_err);
+
+		assert.expectError(function () {
+			mongoDB.findById("id", "callback");
+		}, mongoDB.invalid_ObjectID_err);
+
+		assert.expectError(function () {
+			mongoDB.findById(dummyObjectID, "not a callback Function");
+		}, mongoDB.callback_not_a_function_err);
+
+	},
+
+	"Test if calling findById without prior open connection results in an error": function (test) {
+		test.async(9000);
+
+		var mongoDB = new MongoDB(createConfig());
+		//console.log("\nfindById without prior open connection results ...... mongoDB.dbName", mongoDB.dbName);
 
 		var steps = [
+			function FindById_Query(next) {
+				mongoDB.findById(dummyObjectID, next);
+			},
+			function Assert_Error_Occured(next, err) {
+				assert.hasValue(err, expected_error);
+				assert.areEqual(err.message, mongoDB.no_connection_err);
+				next();
+			}];
 
-			function Connect_To_Database(next) {
+		test.steps(steps).on("complete", function (err) {
+			test.complete(err);
+		});
+	},
+
+	"Test if calling findById of nonexisting document _id results in an error": function (test) {
+		test.async(9000);
+
+		var mongoDB = new MongoDB(createConfig());
+		//console.log("\ncalling findById of nonexisting document id results ...... mongoDB.dbName", mongoDB.dbName);
+
+		var steps = [
+			function Connect_To_DataSource(next) {
 				mongoDB.connect(next);
 			},
-			function Assert_No_Error_And_Drop_Database(next, err) {
+			function Assert_No_Error_And_FindById_Query(next, err) {
 				assert.hasNoValue(err, expected_no_error);
 
-				mongoDB.drop(next);
+				mongoDB.findById(dummyObjectID, next);
 			},
-			function Assert_No_Error_And_NoListed_Database(next, err) {
-				assert.hasNoValue(err, expected_no_error);
-
-				mongoDB.drop(next);
-			},
-			function Assert_No_Error_And_NoListed_Database(next, err) {
-				assert.hasNoValue(err, expected_no_error);
+			function Assert_Error_Occured(next, err) { //}, foundDocument) {
+				assert.hasValue(err, expected_error);
+//				assert.hasNoValue(foundDocument, "Expected foundDocumentno value.");
 
 				next();
 			}];
 
 		test.steps(steps).on("complete", function (err) {
-			mongoDB.disconnect(function () {
-				test.complete(err);
+			mongoDB.drop(function () {
+				mongoDB.disconnect(function () {
+					test.complete(err);
+				});
+			});
+		});
+	},
+
+	"Test if calling findById of an existing document _id results in one found document": function (test) {
+		test.async(9000);
+
+		var mongoDB = new MongoDB(createConfig());
+		//console.log("\ncalling findById of an existing document id results ...... mongoDB.dbName", mongoDB.dbName);
+
+		var steps = [
+			function Connect_To_DataSource(next) {
+				mongoDB.connect(next);
+			},
+			function Assert_No_Error_And_Insert_Document(next, err) {
+				assert.hasNoValue(err, expected_no_error);
+
+				mongoDB.save(newTestDocument, next);
+			},
+			function Assert_No_Error_And_FindById_Query(next, err, insertedDocument) {
+				assert.hasNoValue(err, expected_no_error);
+				assert.hasValue(insertedDocument._id, "Expected instertedDocument to have a value.");
+
+				mongoDB.findById(insertedDocument._id, next);
+			},
+			function Assert_No_Error_And_FoundDocument(next, err, foundDocument) {
+				assert.hasNoValue(err, expected_no_error);
+				assert.hasValue(foundDocument, "Expected the found document to have a value.");
+				assert.areEqual(newTestDocument.name, foundDocument.name, "Expected the found document to have the same name as the original one.");
+
+				next();
+			}];
+
+		test.steps(steps).on("complete", function (err) {
+			mongoDB.drop(function () {
+				mongoDB.disconnect(function () {
+					test.complete(err);
+				});
 			});
 		});
 	},
