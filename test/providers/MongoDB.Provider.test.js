@@ -159,7 +159,6 @@ jstest.run({
 				});
 			});
 		});
-
 	},
 
 	"Test if function DISCONNECT checks all its arguments properly": function () {
@@ -226,7 +225,6 @@ jstest.run({
 
 	"Test if function CREATE checks all its arguments properly": function () {
 		var mongoDB = new MongoDB(createConfig());
-		//console.log("\nCREATE function checks all its arguments ...... mongoDB.dbName = \n", mongoDB.dbName);
 
 		assert.expectError(function () {
 			mongoDB.create();
@@ -289,12 +287,10 @@ jstest.run({
 				test.complete(err);
 			});
 		});
-
 	},
 
 	"Test if function DROP checks all its arguments properly": function () {
 		var mongoDB = new MongoDB(createConfig());
-		//console.log("\nDROP function checks all its arguments properly ...... mongoDB.dbName = \n", mongoDB.dbName);
 
 		assert.expectError(function () {
 			mongoDB.drop();
@@ -494,7 +490,6 @@ jstest.run({
 
 	"Test if function saveMany checks all its arguments properly": function () {
 		var mongoDB = new MongoDB(createConfig());
-		//console.log("\nsaveMany function check all ...... mongoDB.dbName = \n", mongoDB.dbName);
 
 		assert.expectError(function () {
 			mongoDB.save();
@@ -818,28 +813,23 @@ jstest.run({
 
 	"Test if function removeMany checks all its arguments properly": function () {
 		var mongoDB = new MongoDB(createConfig());
-		//console.log("\nremoveMany function check all ...... mongoDB.dbName = \n", mongoDB.dbName);
 
 		assert.expectError(function () {
 			mongoDB.removeMany();
 		}, mongoDB.missing_data_err);
-
 		assert.expectError(function () {
 			mongoDB.removeMany("not an Array");
 		}, mongoDB.callback_not_an_Array_err);
-
 		assert.expectError(function () {
 			mongoDB.removeMany([
 				{"name": "test1"}
 			]);
 		}, mongoDB.missing_data_id_err);
-
 		assert.expectError(function () {
 			mongoDB.removeMany([
 				{"_id": "123", "name": "test"}
 			]);
 		}, mongoDB.missing_callback_err);
-
 		assert.expectError(function () {
 			mongoDB.removeMany([
 				{"_id": 123, "name": "test"}
@@ -945,7 +935,7 @@ jstest.run({
 			function Assert_No_Error_And_removeMany_Documents(next, err, foundDocuments) {
 				assert.hasNoValue(err, expected_no_error);
 				assert.areEqual(0, foundDocuments.length, "Expected foundDocuments to have no length.");
-		
+
 				mongoDB.removeMany([
 					{"_id": "52701be3a424179f3500000c", "name": "test item 1"},
 					{"_id": "52701be3a424179f3500000c", "name": "test item 2"}
