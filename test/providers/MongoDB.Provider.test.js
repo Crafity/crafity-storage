@@ -39,6 +39,9 @@ var expected_error = "Expected error to have a value.";
 var expected_connection = "Expected open connection.";
 var expected_no_connection = "Expected the connection to be closed.";
 
+var dummyObjectID = "52701be3a424179f3500000c";
+var newTestDocument = {"name": "test document"};
+
 /**
  * Create a new configuration with a random database name
  * @returns {*} A configuration object
