@@ -92,7 +92,6 @@ jstest.run({
 		assert.isFalse(mongoDB.isConnected(), "Expected the connection to be closed.");
 	},
 
-	"Test if the CONNECT function checks all its arguments properly": function () {
 		var mongoDB = new MongoDB(createConfig());
 
 		assert.expectError(function () {
@@ -103,8 +102,9 @@ jstest.run({
 		}, mongoDB.callback_not_a_function_err);
 	},
 
-	"Test if CONNECT provides a legitimate connection": function (test) {
 		test.async(900);
+	"Test if function CONNECT provides a legitimate connection": function (test) {
+		test.async(9000);
 
 		var mongoDB = new MongoDB(createConfig());
 
@@ -128,7 +128,7 @@ jstest.run({
 		});
 	},
 
-	"Test if the CONNECT function returns a valid connection after calling it twice": function (test) {
+	"Test if function CONNECT returns a valid connection after calling it twice": function (test) {
 		test.async(9000);
 
 		var mongoDB = new MongoDB(createConfig());
@@ -162,7 +162,7 @@ jstest.run({
 
 	},
 
-	"Test if the DISCONNECT function checks all its arguments properly": function () {
+	"Test if function DISCONNECT checks all its arguments properly": function () {
 		var mongoDB = new MongoDB(createConfig());
 
 		assert.expectError(function () {
@@ -224,7 +224,7 @@ jstest.run({
 		});
 	},
 
-	"Test if CREATE function checks all its arguments properly": function () {
+	"Test if function CREATE checks all its arguments properly": function () {
 		var mongoDB = new MongoDB(createConfig());
 		//console.log("\nCREATE function checks all its arguments ...... mongoDB.dbName = \n", mongoDB.dbName);
 
@@ -259,7 +259,7 @@ jstest.run({
 		});
 	},
 
-	"Test if CREATE function creates a database with a specific name and returns the name": function (test) {
+	"Test if function CREATE creates a database with a specific name and returns the name": function (test) {
 		test.async(9000);
 
 		var dbName = "crafity-test-2";
@@ -267,7 +267,7 @@ jstest.run({
 		var mongoDB = new MongoDB(config);
 		//console.log("\nCREATE function creates a database with a specific name ...... mongoDB.dbName = \n", mongoDB.dbName);
 
-		//! assert that the existing database list from server does not contain this dbName
+		//! TODO assert that the existing database list from server does not contain this dbName
 
 		var steps = [
 			function Connect_to_DataSource(next) {
@@ -292,7 +292,7 @@ jstest.run({
 
 	},
 
-	"Test if DROP function checks all its arguments properly": function () {
+	"Test if function DROP checks all its arguments properly": function () {
 		var mongoDB = new MongoDB(createConfig());
 		//console.log("\nDROP function checks all its arguments properly ...... mongoDB.dbName = \n", mongoDB.dbName);
 
@@ -492,7 +492,7 @@ jstest.run({
 		});
 	},
 
-	"Test if saveMany function checks all its arguments properly": function () {
+	"Test if function saveMany checks all its arguments properly": function () {
 		var mongoDB = new MongoDB(createConfig());
 		//console.log("\nsaveMany function check all ...... mongoDB.dbName = \n", mongoDB.dbName);
 
@@ -642,7 +642,7 @@ jstest.run({
 		});
 	},
 
-	"Test if REMOVE function checks all its arguments properly": function () {
+	"Test if function REMOVE checks all its arguments properly": function () {
 		var mongoDB = new MongoDB(createConfig());
 		//console.log("\nREMOVE function check all ...... mongoDB.dbName = \n", mongoDB.dbName);
 
@@ -816,7 +816,7 @@ jstest.run({
 		});
 	},
 
-	"Test if removeMany function checks all its arguments properly": function () {
+	"Test if function removeMany checks all its arguments properly": function () {
 		var mongoDB = new MongoDB(createConfig());
 		//console.log("\nremoveMany function check all ...... mongoDB.dbName = \n", mongoDB.dbName);
 
@@ -1032,8 +1032,8 @@ jstest.run({
 		});
 	},
 
-	"Test if calling DROP database twice results in just one actual dropping of the database": function (test) {
 		test.async(9000);
+	"Test if function findByKey checks all its arguments properly": function () {
 
 		var config = createConfig();
 		var mongoDB = new MongoDB(config);
