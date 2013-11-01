@@ -102,7 +102,6 @@ jstest.run({
 		}, mongoDB.callback_not_a_function_err);
 	},
 
-		test.async(900);
 	"Test if function CONNECT provides a legitimate connection": function (test) {
 		test.async(9000);
 
@@ -531,7 +530,7 @@ jstest.run({
 	},
 
 	"Test if calling saveMany on nonexisting documents will result in the inserted documents with a technical _id": function (test) {
-		test.async(6000);
+		test.async(9000);
 		var mongoDB = new MongoDB(createConfig());
 		//console.log("\nsaveMany on nonexisting documents ...... mongoDB.dbName", mongoDB.dbName);
 
@@ -574,7 +573,7 @@ jstest.run({
 	},
 
 	"Test if calling saveMany on existing documents will result in the modified documents": function (test) {
-		test.async(6000);
+		test.async(9000);
 
 		var mongoDB = new MongoDB(createConfig());
 		//console.log("\n saveMany on existing ...... mongoDB.dbName", mongoDB.dbName);
@@ -747,7 +746,7 @@ jstest.run({
 	},
 
 	"Test if calling REMOVE on existing document will result in actual removal": function (test) {
-		test.async(6000);
+		test.async(9000);
 
 		var mongoDB = new MongoDB(createConfig());
 		//console.log("\nREMOVE on existing document will result in ...... mongoDB.dbName", mongoDB.dbName);
@@ -919,7 +918,7 @@ jstest.run({
 	},
 
 	"Test if calling removeMany on nonexisting document will result in silence and no error": function (test) {
-		test.async(6000);
+		test.async(9000);
 
 		var mongoDB = new MongoDB(createConfig());
 		//console.log("\nremoveMany on nonexisting document...... mongoDB.dbName", mongoDB.dbName);
@@ -962,7 +961,7 @@ jstest.run({
 	},
 
 	"Test if calling removeMany on existing document will result in actual removal": function (test) {
-		test.async(6000);
+		test.async(9000);
 
 		var mongoDB = new MongoDB(createConfig());
 		//console.log("\nremoveMany on existing document will result in ...... mongoDB.dbName", mongoDB.dbName);
@@ -1022,7 +1021,6 @@ jstest.run({
 		});
 	},
 
-		test.async(9000);
 	"Test if function findByKey checks all its arguments properly": function () {
 
 		var config = createConfig();
