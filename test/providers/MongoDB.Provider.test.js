@@ -124,10 +124,14 @@ jstest.run({
 		];
 
 		test.steps(steps).on("complete", function (err) {
-			mongoDB.drop(function () {
-				mongoDB.disconnect(function () {
-					test.complete(err);
-				});
+			if (err) {
+				throw err;
+			}
+			mongoDB.drop(function (err) {
+				if (err) {
+					throw err;
+				}
+				test.complete(err);
 			});
 		});
 	},
@@ -157,10 +161,14 @@ jstest.run({
 		];
 
 		test.steps(steps).on("complete", function (err) {
-			mongoDB.drop(function () {
-				mongoDB.disconnect(function () {
-					test.complete(err);
-				});
+			if (err) {
+				throw err;
+			}
+			mongoDB.drop(function (err) {
+				if (err) {
+					throw err;
+				}
+				test.complete(err);
 			});
 		});
 	},
@@ -193,6 +201,9 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
+			if (err) {
+				throw err;
+			}
 			test.complete(err);
 		});
 	},
@@ -221,9 +232,10 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
-			mongoDB.drop(function () {
-				test.complete(err);
-			});
+			if (err) {
+				throw err;
+			}
+			test.complete(err);
 		});
 	},
 
@@ -257,6 +269,9 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
+			if (err) {
+				throw err;
+			}
 			test.complete(err);
 		});
 	},
@@ -284,10 +299,14 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
-			mongoDB.drop(function () {
-				mongoDB.disconnect(function () {
-					test.complete(err);
-				});
+			if (err) {
+				throw err;
+			}
+			mongoDB.drop(function (err) {
+				if (err) {
+					throw err;
+				}
+				test.complete(err);
 			});
 		});
 	},
@@ -312,7 +331,7 @@ jstest.run({
 
 		var steps = [
 
-			function Recreate(next) {
+			function Recreate_Database(next) {
 				mongoDB.recreate(next);
 			},
 			function Assert_Error_For_Closed_Connection(next, err) {
@@ -322,6 +341,9 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
+			if (err) {
+				throw err;
+			}
 			test.complete(err);
 		});
 	},
@@ -366,10 +388,15 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
-			mongoDB.drop(function () {
-				mongoDB.disconnect(function () {
-					test.complete(err);
-				});
+			if (err) {
+				throw err;
+			}
+			mongoDB.drop(function (err) {
+				console.log("unit test DROPPED  ", config.url);
+				if (err) {
+					throw err;
+				}
+				test.complete(err);
 			});
 		});
 	},
@@ -402,13 +429,16 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
+			if (err) {
+				throw err;
+			}
 			test.complete(err);
 		});
 	},
 
 	"Test if calling DROP on an existing database results in actual dropping of the database": function (test) {
 		test.async(9000);
-		
+
 		var mongoDB = new MongoDB(createConfig());
 
 		var steps = [
@@ -428,9 +458,10 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
-			mongoDB.disconnect(function () {
-				test.complete(err);
-			});
+			if (err) {
+				throw err;
+			}
+			test.complete(err);
 		});
 	},
 
@@ -440,7 +471,6 @@ jstest.run({
 		var mongoDB = new MongoDB(createConfig());
 
 		var steps = [
-
 			function Connect_To_Database(next) {
 				mongoDB.connect(next);
 			},
@@ -461,9 +491,10 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
-			mongoDB.disconnect(function () {
-				test.complete(err);
-			});
+			if (err) {
+				throw err;
+			}
+			test.complete(err);
 		});
 	},
 
@@ -485,7 +516,7 @@ jstest.run({
 
 	"Test if calling SAVE without a prior open connect will result in an error": function (test) {
 		test.async(9000);
-		
+
 		var mongoDB = new MongoDB(createConfig());
 		var testData = {
 			name: "test item",
@@ -493,7 +524,6 @@ jstest.run({
 		};
 
 		var steps = [
-
 			function Save_Document(next) {
 				mongoDB.save(testData, next);
 			},
@@ -504,13 +534,16 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
+			if (err) {
+				throw err;
+			}
 			test.complete(err);
 		});
 	},
 
 	"Test if calling SAVE of a nonexisting document will result in the inserted document with a technical _id": function (test) {
 		test.async(9000);
-		
+
 		var mongoDB = new MongoDB(createConfig());
 		var testDocument = {
 			name: "test item",
@@ -536,17 +569,21 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
-			mongoDB.drop(function () {
-				mongoDB.disconnect(function () {
-					test.complete(err);
-				});
+			if (err) {
+				throw err;
+			}
+			mongoDB.drop(function (err) {
+				if (err) {
+					throw err;
+				}
+				test.complete(err);
 			});
 		});
 	},
 
 	"Test if calling SAVE of an existing document will result in a modified document": function (test) {
 		test.async(9000);
-		
+
 		var mongoDB = new MongoDB(createConfig());
 		var testDocument = {
 			name: "test item",
@@ -555,7 +592,6 @@ jstest.run({
 		var insertedDocument = null;
 
 		var steps = [
-
 			function Connect_To_DataSource(next) {
 				mongoDB.connect(next);
 			},
@@ -585,10 +621,14 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
-			mongoDB.drop(function () {
-				mongoDB.disconnect(function () {
-					test.complete(err);
-				});
+			if (err) {
+				throw err;
+			}
+			mongoDB.drop(function (err) {
+				if (err) {
+					throw err;
+				}
+				test.complete(err);
 			});
 		});
 	},
@@ -611,7 +651,7 @@ jstest.run({
 
 	"Test if calling saveMany without a prior open connect will result in an error": function (test) {
 		test.async(9000);
-		
+
 		var mongoDB = new MongoDB(createConfig());
 		var testData = [
 			{name: "test item 1", timeStamp: Date.now()},
@@ -619,7 +659,6 @@ jstest.run({
 		];
 
 		var steps = [
-
 			function Save_Documents(next) {
 				mongoDB.save(testData, next);
 			},
@@ -664,10 +703,14 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
-			mongoDB.drop(function () {
-				mongoDB.disconnect(function () {
-					test.complete(err);
-				});
+			if (err) {
+				throw err;
+			}
+			mongoDB.drop(function (err) {
+				if (err) {
+					throw err;
+				}
+				test.complete(err);
 			});
 		});
 	},
@@ -723,10 +766,14 @@ jstest.run({
 		];
 
 		test.steps(steps).on("complete", function (err) {
-			mongoDB.drop(function () {
-				mongoDB.disconnect(function () {
-					test.complete(err);
-				});
+			if (err) {
+				throw err;
+			}
+			mongoDB.drop(function (err) {
+				if (err) {
+					throw err;
+				}
+				test.complete(err);
 			});
 		});
 	},
@@ -757,7 +804,7 @@ jstest.run({
 
 	"Test if calling REMOVE without a prior open connect will result in an error": function (test) {
 		test.async(9000);
-		
+
 		var mongoDB = new MongoDB(createConfig());
 
 		var steps = [
@@ -778,7 +825,7 @@ jstest.run({
 
 	"Test if calling REMOVE on a document by giving an invalid _id will result in an error": function (test) {
 		test.async(9000);
-		
+
 		var mongoDB = new MongoDB(createConfig());
 
 		var steps = [
@@ -796,17 +843,21 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
-			mongoDB.drop(function () {
-				mongoDB.disconnect(function () {
-					test.complete(err);
-				});
+			if (err) {
+				throw err;
+			}
+			mongoDB.drop(function (err) {
+				if (err) {
+					throw err;
+				}
+				test.complete(err);
 			});
 		});
 	},
 
 	"Test if calling REMOVE on nonexisting document will result in silence and no error": function (test) {
 		test.async(9000);
-		
+
 		var mongoDB = new MongoDB(createConfig());
 
 		var steps = [
@@ -823,10 +874,14 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
-			mongoDB.drop(function () {
-				mongoDB.disconnect(function () {
-					test.complete(err);
-				});
+			if (err) {
+				throw err;
+			}
+			mongoDB.drop(function (err) {
+				if (err) {
+					throw err;
+				}
+				test.complete(err);
 			});
 		});
 	},
@@ -841,7 +896,7 @@ jstest.run({
 			{name: "test item 3", timeStamp: Date.now()}
 		];
 		var insertedDocuments = null;
-		
+
 		var steps = [
 			function Connect_To_DataSource(next) {
 				mongoDB.connect(next);
@@ -881,10 +936,14 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
-			mongoDB.drop(function () {
-				mongoDB.disconnect(function () {
-					test.complete(err);
-				});
+			if (err) {
+				throw err;
+			}
+			mongoDB.drop(function (err) {
+				if (err) {
+					throw err;
+				}
+				test.complete(err);
 			});
 		});
 	},
@@ -942,7 +1001,7 @@ jstest.run({
 
 		var mongoDB = new MongoDB(createConfig());
 		var steps = [
-			function Connectl_With_Database(next) {
+			function Connectl_To_Database(next) {
 				mongoDB.connect(next);
 			},
 			function Assert_No_Error_And_Call_RemoveMany(next, err) {
@@ -958,10 +1017,14 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
-			mongoDB.drop(function () {
-				mongoDB.disconnect(function () {
-					test.complete(err);
-				});
+			if (err) {
+				throw err;
+			}
+			mongoDB.drop(function (err) {
+				if (err) {
+					throw err;
+				}
+				test.complete(err);
 			});
 		});
 	},
@@ -987,10 +1050,14 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
-			mongoDB.drop(function () {
-				mongoDB.disconnect(function () {
-					test.complete(err);
-				});
+			if (err) {
+				throw err;
+			}
+			mongoDB.drop(function (err) {
+				if (err) {
+					throw err;
+				}
+				test.complete(err);
 			});
 		});
 	},
@@ -1029,10 +1096,11 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
-			mongoDB.drop(function () {
-				mongoDB.disconnect(function () {
-					test.complete(err);
-				});
+			if (err) {
+				throw err;
+			}
+			mongoDB.drop(function (err) {
+				test.complete(err);
 			});
 		});
 	},
@@ -1045,9 +1113,9 @@ jstest.run({
 			{name: "test item 1"},
 			{name: "test item 2"},
 			{name: "test item 3"}
-		];	
+		];
 		var insertedDocuments = null;
-		
+
 		var steps = [
 			function Connect_To_DataSource(next) {
 				mongoDB.connect(next);
@@ -1088,10 +1156,14 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
-			mongoDB.drop(function () {
-				mongoDB.disconnect(function () {
-					test.complete(err);
-				});
+			if (err) {
+				throw err;
+			}
+			mongoDB.drop(function (err) {
+				if (err) {
+					throw err;
+				}
+				test.complete(err);
 			});
 		});
 	},
@@ -1137,6 +1209,9 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
+			if (err) {
+				throw err;
+			}
 			test.complete(err);
 		});
 	},
@@ -1162,10 +1237,14 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
-			mongoDB.drop(function () {
-				mongoDB.disconnect(function () {
-					test.complete(err);
-				});
+			if (err) {
+				throw err;
+			}
+			mongoDB.drop(function (err) {
+				if (err) {
+					throw err;
+				}
+				test.complete(err);
 			});
 		});
 	},
@@ -1199,10 +1278,14 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
-			mongoDB.drop(function () {
-				mongoDB.disconnect(function () {
-					test.complete(err);
-				});
+			if (err) {
+				throw err;
+			}
+			mongoDB.drop(function (err) {
+				if (err) {
+					throw err;
+				}
+				test.complete(err);
 			});
 		});
 	},
@@ -1239,6 +1322,9 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
+			if (err) {
+				throw err;
+			}
 			test.complete(err);
 		});
 	},
@@ -1272,10 +1358,14 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
-			mongoDB.drop(function () {
-				mongoDB.disconnect(function () {
-					test.complete(err);
-				});
+			if (err) {
+				throw err;
+			}
+			mongoDB.drop(function (err) {
+				if (err) {
+					throw err;
+				}
+				test.complete(err);
 			});
 		});
 	},
@@ -1312,13 +1402,16 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
+			if (err) {
+				throw err;
+			}
 			test.complete(err);
 		});
 	},
 
 	"Test if calling findManyByKey will result in an Array of found documents": function (test) {
 		test.async(9000);
-		
+
 		var mongoDB = new MongoDB(createConfig());
 		var testData = [
 			{name: "test item 1", timeStamp: Date.now()},
@@ -1391,11 +1484,10 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
-			mongoDB.drop(function () {
-				mongoDB.disconnect(function () {
-					test.complete(err);
-				});
-			});
+			if (err) {
+				throw err;
+			}
+			test.complete(err);
 		});
 	},
 
@@ -1429,10 +1521,14 @@ jstest.run({
 			}];
 
 		test.steps(steps).on("complete", function (err) {
-			mongoDB.drop(function () {
-				mongoDB.disconnect(function () {
-					test.complete(err);
-				});
+			if (err) {
+				throw err;
+			}
+			mongoDB.drop(function (err) {
+				if (err) {
+					throw err;
+				}
+				test.complete(err);
 			});
 		});
 	}
