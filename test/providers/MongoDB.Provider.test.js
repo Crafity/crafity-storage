@@ -16,7 +16,30 @@
 /* Load JSTest and asserts lib */
 var jstest = require('crafity-jstest').createContext('MongoDB Provider Tests');
 var assert = jstest.assert;
-var db = require("./data/mongo.database");
+//var db = require("./data/mongo.database");
+
+/**
+ * Require the native mongoDB module to check if the
+ * dependency is available.
+ *
+ *   This driver is used when the env variable
+ *   INTEGRATION is set to true, otherwise a
+ *   mock for mongoDB is used.
+ *
+ *   The default is to use the mongoDB mock because
+ *   you cannot assume mongodb is installed and
+ *   running on the target machine where these test are running (think of Travis).
+ *
+ * */
+var _mongoDB = require("mongodb");
+
+/**
+ * In case we are not running an integration test
+ * replace mongoDB by a mock for further testing.
+ */
+if (!process.env.INTEGRATION) {
+	_mongoDB = require('./mocks/mongodb.mock');
+}
 
 /* The main code to verify */
 var MongoDB = require('../../lib/providers/MongoDB.Provider');
@@ -74,28 +97,29 @@ jstest.run({
 		}, "Expected a collection name in the MongoDB configuration");
 
 		/* Check if all the public properties are set as expected */
-		mongoDB = new MongoDB(config);
+		var testConfig = createConfig();
+		mongoDB = new MongoDB(testConfig, _mongoDB);
 
 		assert.areEqual("MongoDB Provider", mongoDB.type, "Expected another provider name");
-		assert.areEqual("mongodb://localhost:27017/crafity-test-", mongoDB.url, "Expected another database name");
+		assert.areEqual(testConfig.url, mongoDB.url, "Expected another database name");
 		assert.areEqual("Test", mongoDB.name, "Expected another name");
-		assert.areEqual("tests", mongoDB.collection, "Expected another collection name");
-		assert.isSame(config, mongoDB.config, "Expected exactly the same configuration");
+		assert.areEqual("tests", mongoDB.collectionName, "Expected another collection name");
+		assert.isSame(testConfig, mongoDB.config, "Expected exactly the same configuration");
 	},
 
 	"Instantiate the MongoDB provider and check if it has the Generic Provider as its prototype": function () {
-		var mongoDB = new MongoDB(config);
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 		assert.isInstanceOf(Provider, mongoDB[PROTO_PROPERY], "Expected the Generic Provider to be the prototype");
 	},
 
 	"Test if isConnected is false initially": function () {
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		assert.isFalse(mongoDB.isConnected(), "Expected the connection to be closed.");
 	},
 
 	"Test if function CONNECT checks all its arguments properly": function () {
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		assert.expectError(function () {
 			mongoDB.connect();
@@ -108,7 +132,7 @@ jstest.run({
 	"Test if function CONNECT provides a legitimate connection": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		var steps = [
 			function Connect_To_Database(next) {
@@ -139,7 +163,7 @@ jstest.run({
 	"Test if function CONNECT returns a valid connection after calling it twice": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		var steps = [
 			function Connect_First_Time(next) {
@@ -174,7 +198,7 @@ jstest.run({
 	},
 
 	"Test if function DISCONNECT checks all its arguments properly": function () {
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		assert.expectError(function () {
 			mongoDB.disconnect();
@@ -187,7 +211,7 @@ jstest.run({
 	"Test if calling DISCONNECT without a prior open connect call throws an error": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		var steps = [
 
@@ -211,7 +235,7 @@ jstest.run({
 	"Test if calling DISCONNECT with a prior open connect call results in a closed connection": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		var steps = [
 			function Connect_To_DataSource(next) {
@@ -240,7 +264,7 @@ jstest.run({
 	},
 
 	"Test if function CREATE checks all its arguments properly": function () {
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		assert.expectError(function () {
 			mongoDB.create();
@@ -255,7 +279,7 @@ jstest.run({
 
 		var dbName = "crafity-test-1";
 		config.url = "mongodb://localhost:27017/" + dbName;
-		var mongoDB = new MongoDB(config);
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		var steps = [
 
@@ -279,9 +303,8 @@ jstest.run({
 	"Test if function CREATE creates a database with a specific name and returns the name": function (test) {
 		test.async(9000);
 
-		var dbName = "crafity-test-2";
-		config.url = "mongodb://localhost:27017/" + dbName;
-		var mongoDB = new MongoDB(config);
+		var testConfig = createConfig();
+		var mongoDB = new MongoDB(testConfig, _mongoDB);
 
 		var steps = [
 			function Connect_to_DataSource(next) {
@@ -293,7 +316,7 @@ jstest.run({
 			},
 			function Assert_Return_databaseName(next, err, databaseNameResult) {
 				assert.hasNoValue(err, expected_no_error);
-				assert.isSame(dbName, databaseNameResult, "Expected database names to be exactly the same.");
+				assert.isSame(mongoDB.dbName, databaseNameResult, "Expected database names to be exactly the same.");
 
 				next();
 			}];
@@ -312,7 +335,7 @@ jstest.run({
 	},
 
 	"Test if function RECREATE checks all its arguments properly": function () {
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		assert.expectError(function () {
 			mongoDB.recreate();
@@ -327,7 +350,7 @@ jstest.run({
 
 		var dbName = "crafity-test-1";
 		config.url = "mongodb://localhost:27017/" + dbName;
-		var mongoDB = new MongoDB(config);
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		var steps = [
 
@@ -351,10 +374,9 @@ jstest.run({
 	"Test if function RECREATE drops and creates a database with a specific name and returns the name": function (test) {
 		test.async(9000);
 
-		var dbName = "crafity-test-recreate-X";
-		config.url = "mongodb://localhost:27017/" + dbName;
-		var mongoDB = new MongoDB(config);
-		var testDocument = {"name": "Insert this document before recreating database " + dbName};
+		var testConfig = createConfig();
+		var mongoDB = new MongoDB(testConfig, _mongoDB);
+		var testDocument = {"name": "Insert this document before recreating database " + testConfig.url};
 
 		var steps = [
 			function Connect_to_DataSource(next) {
@@ -376,7 +398,7 @@ jstest.run({
 			},
 			function Assert_Recreated_database(next, err) {
 				assert.hasNoValue(err, expected_no_error);
-				assert.isSame(dbName, mongoDB.dbName, "Expected database names to be exactly the same.");
+				assert.isSame(testConfig.url, mongoDB.url, "Expected database names to be exactly the same.");
 
 				mongoDB.findById(testDocument._id, next);
 			},
@@ -402,7 +424,7 @@ jstest.run({
 	},
 
 	"Test if function DROP checks all its arguments properly": function () {
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		assert.expectError(function () {
 			mongoDB.drop();
@@ -415,7 +437,7 @@ jstest.run({
 	"Test if calling DROP of a database without a prior open connection results in an error": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		var steps = [
 
@@ -439,7 +461,7 @@ jstest.run({
 	"Test if calling DROP on an existing database results in actual dropping of the database": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		var steps = [
 
@@ -468,7 +490,7 @@ jstest.run({
 	"Test if calling DROP database twice results in just one actual dropping of the database": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		var steps = [
 			function Connect_To_Database(next) {
@@ -499,7 +521,7 @@ jstest.run({
 	},
 
 	"Test if function SAVE checks all its arguments properly": function () {
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		assert.expectError(function () {
 			mongoDB.save();
@@ -517,7 +539,7 @@ jstest.run({
 	"Test if calling SAVE without a prior open connect will result in an error": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 		var testData = {
 			name: "test item",
 			timeStamp: Date.now()
@@ -541,10 +563,10 @@ jstest.run({
 		});
 	},
 
-	"Test if calling SAVE of a nonexisting document will result in the inserted document with a technical _id": function (test) {
+	"Test if calling SAVE on a nonexisting document will result in the inserted document with a technical _id": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 		var testDocument = {
 			name: "test item",
 			timeStamp: Date.now()
@@ -581,10 +603,10 @@ jstest.run({
 		});
 	},
 
-	"Test if calling SAVE of an existing document will result in a modified document": function (test) {
+	"Test if calling SAVE on an existing document will result in a modified document": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 		var testDocument = {
 			name: "test item",
 			timeStamp: Date.now()
@@ -634,7 +656,7 @@ jstest.run({
 	},
 
 	"Test if function saveMany checks all its arguments properly": function () {
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		assert.expectError(function () {
 			mongoDB.save();
@@ -652,7 +674,7 @@ jstest.run({
 	"Test if calling saveMany without a prior open connect will result in an error": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 		var testData = [
 			{name: "test item 1", timeStamp: Date.now()},
 			{name: "test item 2", timeStamp: Date.now()}
@@ -676,7 +698,7 @@ jstest.run({
 	"Test if calling saveMany on nonexisting documents will result in the inserted documents with a technical _id": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 		var testData = [
 			{name: "test item 1", timeStamp: Date.now()},
 			{name: "test item 2", timeStamp: Date.now()},
@@ -718,7 +740,7 @@ jstest.run({
 	"Test if calling saveMany on existing documents will result in the modified documents": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 		var insertedDocuments = null;
 
 		var testData = [
@@ -779,7 +801,7 @@ jstest.run({
 	},
 
 	"Test if function REMOVE checks all its arguments properly": function () {
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		assert.expectError(function () {
 			mongoDB.remove();
@@ -805,7 +827,7 @@ jstest.run({
 	"Test if calling REMOVE without a prior open connect will result in an error": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		var steps = [
 
@@ -826,7 +848,7 @@ jstest.run({
 	"Test if calling REMOVE on a document by giving an invalid _id will result in an error": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		var steps = [
 			function Connect_To_DataSource(next) {
@@ -855,10 +877,10 @@ jstest.run({
 		});
 	},
 
-	"Test if calling REMOVE on nonexisting document will result in silence and no error": function (test) {
+	"Test if calling REMOVE on a nonexisting document will result in silence and no error": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		var steps = [
 			function Connect_To_DataSource(next) {
@@ -886,10 +908,10 @@ jstest.run({
 		});
 	},
 
-	"Test if calling REMOVE on existing document will result in actual removal": function (test) {
+	"Test if calling REMOVE on an existing document will result in actual removal": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 		var testData = [
 			{name: "test item 1", timeStamp: Date.now()},
 			{name: "test item 2", timeStamp: Date.now()},
@@ -916,6 +938,7 @@ jstest.run({
 					assert.hasValue(doc._id, "Expected a newly created document _id.");
 				});
 
+				console.log("\ndata to be REMOVED...", insertedDocuments[0]);
 				mongoDB.remove(insertedDocuments[0], next);
 			},
 			function Assert_No_error_And_Find_All(next, err) { //}, result) {
@@ -924,6 +947,7 @@ jstest.run({
 				mongoDB.findAll(next);
 			},
 			function Assert_No_Error_And_An_Inserted_Document(next, err, foundDocuments) {
+				console.log("Found document after removal....... ", foundDocuments);
 				assert.hasNoValue(err, expected_no_error);
 				assert.isInstanceOf(Array, foundDocuments, "Expected to return array of documents.");
 				assert.areEqual(2, foundDocuments.length, "Expected to return array of 2 documents.");
@@ -948,8 +972,9 @@ jstest.run({
 		});
 	},
 
+	
 	"Test if function removeMany checks all its arguments properly": function () {
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		assert.expectError(function () {
 			mongoDB.removeMany();
@@ -977,7 +1002,7 @@ jstest.run({
 	"Test if calling removeMany without a prior open connect will result in an error": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		var steps = [
 			function Remove_Array_of__Documents(next) {
@@ -999,7 +1024,7 @@ jstest.run({
 	"Test if calling removeMany with a missing _id in document will result in an error": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 		var steps = [
 			function Connectl_To_Database(next) {
 				mongoDB.connect(next);
@@ -1032,7 +1057,7 @@ jstest.run({
 	"Test if calling removeMany with an invalid _id in document will result in an error": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 		var steps = [
 			function Connectl_To_Database(next) {
 				mongoDB.connect(next);
@@ -1065,7 +1090,7 @@ jstest.run({
 	"Test if calling removeMany on nonexisting document will result in silence and no error": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		var steps = [
 			function Connect_To_DataSource(next) {
@@ -1077,6 +1102,7 @@ jstest.run({
 			},
 			function Assert_No_Error_And_removeMany_Documents(next, err, foundDocuments) {
 				assert.hasNoValue(err, expected_no_error);
+				console.log("foundDocuments", foundDocuments);
 				assert.areEqual(0, foundDocuments.length, "Expected foundDocuments to have no length.");
 
 				mongoDB.removeMany([
@@ -1108,7 +1134,7 @@ jstest.run({
 	"Test if calling removeMany on existing document will result in actual removal": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 		var testData = [
 			{name: "test item 1"},
 			{name: "test item 2"},
@@ -1168,8 +1194,9 @@ jstest.run({
 		});
 	},
 
+
 	"Test if function findById checks all its arguments properly": function () {
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		assert.expectError(function () {
 			mongoDB.findById();
@@ -1196,7 +1223,7 @@ jstest.run({
 	"Test if calling findById without prior open connection results in an error": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		var steps = [
 			function FindById_Query(next) {
@@ -1219,7 +1246,7 @@ jstest.run({
 	"Test if calling findById of nonexisting document _id results in an error": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		var steps = [
 			function Connect_To_DataSource(next) {
@@ -1252,7 +1279,7 @@ jstest.run({
 	"Test if calling findById of an existing document _id results in one found document": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		var steps = [
 			function Connect_To_DataSource(next) {
@@ -1291,7 +1318,7 @@ jstest.run({
 	},
 
 	"Test if function findByKey checks all its arguments properly": function () {
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		assert.expectError(function () {
 			mongoDB.findByKey();
@@ -1309,7 +1336,7 @@ jstest.run({
 	"Test if calling findByKey without prior open connection results in an error": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		var steps = [
 			function FindByKey_Query(next) {
@@ -1329,10 +1356,11 @@ jstest.run({
 		});
 	},
 
+	
 	"Test if calling findManyByKey for an existing document results in one found document": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		var steps = [
 			function Connect_To_Database(next) {
@@ -1371,7 +1399,7 @@ jstest.run({
 	},
 
 	"Test if function findManyByKey checks all its arguments properly": function () {
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		assert.expectError(function () {
 			mongoDB.findManyByKey();
@@ -1389,7 +1417,7 @@ jstest.run({
 	"Test if calling findManyByKey without prior open connection results in an error": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		var steps = [
 			function FindManyByKey_Query(next) {
@@ -1412,7 +1440,7 @@ jstest.run({
 	"Test if calling findManyByKey will result in an Array of found documents": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 		var testData = [
 			{name: "test item 1", timeStamp: Date.now()},
 			{name: "test item 2", timeStamp: Date.now()},
@@ -1456,8 +1484,9 @@ jstest.run({
 		});
 	},
 
+	
 	"Test if function findAll checks all its arguments properly": function () {
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		assert.expectError(function () {
 			mongoDB.findAll();
@@ -1471,7 +1500,7 @@ jstest.run({
 	"Test if calling findAll without prior open connection results in an error": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		var steps = [
 			function FindByKey_Query(next) {
@@ -1494,7 +1523,7 @@ jstest.run({
 	"Test if calling findAll results in an array of documents": function (test) {
 		test.async(9000);
 
-		var mongoDB = new MongoDB(createConfig());
+		var mongoDB = new MongoDB(createConfig(), _mongoDB);
 
 		var steps = [
 			function Connect_To_Database(next) {
