@@ -59,7 +59,6 @@
 		"node": "*"
 	},
 	"scripts": {
-		"prepublish": "npm prune",
-		"test": "scripts/npm-test.sh"
+		"prepublish": "npm prune"
 	}
 }
